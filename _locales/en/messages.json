@@ -1,4 +1,11 @@
 {
-  "name": { "message": "Paper Clipper for Gmail" },
-  "description": { "message": "Copy Gmail emails and whole threads in one click, optionally with every attachment as a real file." }
+  "name": {
+    "message": "Paper Clipper for Gmail"
+  },
+  "description": {
+    "message": "Copy Gmail emails and whole threads in one click, optionally with every attachment as a real file."
+  },
+  "actionTitle": {
+    "message": "Paper Clipper notes"
+  }
 }

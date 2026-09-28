@@ -9,6 +9,10 @@
   margin: 8px 0 4px;
 }
 
+.paper-clipper-thread > .paper-clipper-bar {
+  margin: 0;
+}
+
 .paper-clipper-btn {
   display: inline-flex;
   align-items: center;
@@ -39,6 +43,63 @@
   height: 16px;
   fill: currentColor;
   flex: none;
+}
+
+.paper-clipper-count {
+  min-width: 18px;
+  height: 18px;
+  margin-left: 2px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 9px;
+  background: rgba(128, 128, 128, 0.2);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.paper-clipper-count[hidden] {
+  display: none;
+}
+
+.paper-clipper-btn.is-active {
+  border-color: rgba(227, 116, 0, 0.7);
+  background: rgba(251, 188, 4, 0.18);
+}
+
+.paper-clipper-note {
+  max-width: 760px;
+  margin: 8px 0 4px;
+}
+
+.paper-clipper-note[hidden] {
+  display: none;
+}
+
+.paper-clipper-note-field {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 12px;
+  border: 1px solid rgba(227, 116, 0, 0.45);
+  border-radius: 8px;
+  background: rgba(251, 188, 4, 0.12);
+  color: inherit;
+  font: 14px/1.45 'Google Sans', Roboto, Arial, sans-serif;
+  resize: vertical;
+}
+
+.paper-clipper-note-field:focus {
+  outline: 2px solid #0b57d0;
+  outline-offset: -1px;
+}
+
+.paper-clipper-note-status {
+  min-height: 16px;
+  margin-top: 4px;
+  font: 12px/16px 'Google Sans', Roboto, Arial, sans-serif;
+  opacity: 0.7;
 }
 
 .paper-clipper-busy .paper-clipper-btn {

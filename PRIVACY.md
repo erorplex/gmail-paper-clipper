@@ -16,6 +16,10 @@ Paper Clipper for Gmail processes your email only on your own computer.
   a local process). The helper writes them to `~/Library/Caches/PaperClipper` and references them on the clipboard.
   The most recent copy stays there so that pasting keeps working; older copies are deleted the next time you copy
   with attachments (after one hour). `./uninstall.sh` removes the folder.
+- Notes are stored in the browser's extension storage (`chrome.storage.local`) on this computer, together with the
+  subject and the Gmail link of the thread. Copy counters are a local record of which email or thread you copied
+  and when. Neither is synced or shared. Notes can be deleted and exported in the toolbar popup; counters are
+  deleted together with the extension.
 - Nothing is sent to any server. There are no analytics, no telemetry, no remote code and no third-party libraries.
 
 ## Permissions
@@ -25,6 +29,7 @@ Paper Clipper for Gmail processes your email only on your own computer.
 | Access to `mail.google.com` (content script) | show the buttons and load the email you choose to copy |
 | `clipboardWrite` | put the text on the clipboard |
 | `nativeMessaging` | talk to the local macOS helper for attachments |
+| `storage` | keep your notes and copy counters on this computer |
 
 ## Contact
 
