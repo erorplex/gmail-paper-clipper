@@ -26,6 +26,7 @@
         noteSaving: 'Speichert …',
         noteSaved: (when) => `Gespeichert · ${when}`,
         noteDeleted: 'Notiz gelöscht',
+        noteFailed: 'Notiz nicht gespeichert',
         copiedTimes: (n, when) => `Bereits ${n}× kopiert, zuletzt ${when}`,
         loading: (n) => (n === 1 ? 'Lade Mail …' : `Lade ${n} Nachrichten …`),
         mail: 'Mail',
@@ -55,6 +56,7 @@
         noteSaving: 'Saving …',
         noteSaved: (when) => `Saved · ${when}`,
         noteDeleted: 'Note deleted',
+        noteFailed: 'Note not saved',
         copiedTimes: (n, when) => `Copied ${n}× so far, last ${when}`,
         loading: (n) => (n === 1 ? 'Loading email …' : `Loading ${n} messages …`),
         mail: 'Email',
@@ -130,11 +132,12 @@
 
   function showStats(target, stats) {
     for (const b of document.querySelectorAll(`.paper-clipper-btn[data-pc-target="${CSS.escape(target)}"]`)) {
-      const n = (stats && stats[b.dataset.pcMode]) || 0;
+      const mode = b.dataset.pcMode;
+      const n = (stats && stats[mode]) || 0;
       const count = b.querySelector('.paper-clipper-count');
       count.textContent = String(n);
       count.hidden = n === 0;
-      b.title = n ? `${b.dataset.pcTitle}\n${T.copiedTimes(n, when(stats.lastAt))}` : b.dataset.pcTitle;
+      b.title = n ? `${b.dataset.pcTitle}\n${T.copiedTimes(n, when(stats[`${mode}At`]))}` : b.dataset.pcTitle;
     }
   }
 
@@ -285,7 +288,16 @@
     field.style.height = `${field.scrollHeight + 2}px`;
   }
 
+  // Pending note saves, flushed when the tab is hidden or closed before the debounce fires.
+  const pendingSaves = new Set();
+  const flushNotes = () => pendingSaves.forEach((save) => save());
+  window.addEventListener('pagehide', flushNotes);
+  document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flushNotes());
+
   function notePanel(threadId, subject) {
+    // Remembered now, while this thread is on screen; Gmail may show another thread when the save runs.
+    let subjectText = subject.textContent.trim();
+    let url = location.href;
     const panel = document.createElement('div');
     panel.className = 'paper-clipper-note';
     panel.hidden = true;
@@ -305,35 +317,49 @@
     const save = async () => {
       clearTimeout(timer);
       timer = null;
+      pendingSaves.delete(save);
+      if (subject.isConnected && PC.isVisible(subject)) {
+        subjectText = subject.textContent.trim();
+        url = location.href;
+      }
+      const text = field.value;
       try {
-        const subjectText = currentSubject(subject).textContent.trim();
-        await PC.saveNote(threadId, { text: field.value, subject: subjectText, url: location.href });
-        status.textContent = field.value.trim() ? T.noteSaved(when(Date.now())) : T.noteDeleted;
+        await PC.saveNote(threadId, { text, subject: subjectText, url });
+        if (!timer) delete field.dataset.pcDirty; // no newer input while saving
+        status.textContent = text.trim() ? T.noteSaved(when(Date.now())) : T.noteDeleted;
       } catch (err) {
-        status.textContent = explain(err);
+        status.textContent = /context invalidated/i.test(String(err && err.message)) ? T.reload : `${T.noteFailed}: ${err.message || err}`;
       }
     };
     field.addEventListener('input', () => {
       autoGrow(field);
+      field.dataset.pcDirty = '1';
       status.textContent = T.noteSaving;
       clearTimeout(timer);
       timer = setTimeout(save, 500);
+      pendingSaves.add(save);
     });
     field.addEventListener('blur', () => timer && save());
     return panel;
   }
 
-  // Updates every note UI of a thread, e.g. after typing in another tab. Opens it when asked and a note exists.
+  // Updates every note UI of a thread, e.g. after a change in another tab or in the popup. Text the
+  // user has typed but not saved yet is never overwritten. Opens the panel when asked and a note exists.
   function showNote(threadId, note, { open = false } = {}) {
     for (const wrap of document.querySelectorAll(`.paper-clipper-thread[data-pc-thread="${CSS.escape(threadId)}"]`)) {
       const panel = wrap.querySelector('.paper-clipper-note');
       const field = wrap.querySelector('.paper-clipper-note-field');
-      wrap.querySelector('.paper-clipper-note-btn').classList.toggle('is-active', !!note);
-      if (document.activeElement !== field) {
-        field.value = note ? note.text : '';
+      const noteButton = wrap.querySelector('.paper-clipper-note-btn');
+      noteButton.classList.toggle('is-active', !!note);
+      if (!field.dataset.pcDirty) {
+        const text = note ? note.text : '';
+        if (field.value !== text) field.value = text;
         wrap.querySelector('.paper-clipper-note-status').textContent = note ? T.noteSaved(when(note.updatedAt)) : '';
       }
-      if (open && note) panel.hidden = false;
+      if (open && note) {
+        panel.hidden = false;
+        noteButton.setAttribute('aria-expanded', 'true');
+      }
       if (!panel.hidden) autoGrow(field);
     }
   }
@@ -398,7 +424,12 @@
   function scan() {
     for (const subject of PC.visibleSubjects()) {
       const next = subject.parentElement.nextElementSibling;
-      if (!(next && next.classList.contains('paper-clipper-thread'))) PC.insertThreadBar(subject, threadBar(subject));
+      if (next && next.classList.contains('paper-clipper-thread')) {
+        // Gmail may reuse the header for another thread, or the id may only appear later.
+        if (next.dataset.pcThread === (PC.threadId(subject) || undefined)) continue;
+        next.remove();
+      }
+      PC.insertThreadBar(subject, threadBar(subject));
     }
     for (const { element, body, ref } of PC.expandedMessages()) {
       if (!element.querySelector('.paper-clipper-message')) PC.insertMessageBar(body, messageBar(ref));

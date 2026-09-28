@@ -46,12 +46,11 @@
     render();
   });
   exportButton.addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
+    // A data URL, unlike a blob URL, stays valid when the popup closes for a "Save as" dialog.
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
+    link.href = `data:application/json;charset=utf-8,${encodeURIComponent(JSON.stringify(notes, null, 2))}`;
     link.download = `paper-clipper-notes-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   });
 
   function render() {

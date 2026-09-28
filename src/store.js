@@ -1,6 +1,6 @@
 /*
  * Copy counters and thread notes in chrome.storage.local. Nothing is synced or sent anywhere.
- *   stats:m:<message id> / stats:t:<thread id> -> { copy, attach, lastAt }
+ *   stats:m:<message id> / stats:t:<thread id> -> { copy, attach, copyAt, attachAt }
  *   note:<thread id>                            -> { text, subject, url, updatedAt }
  * Runs in the content script and the popup (exports to globalThis.PaperClipper) and under Node for tests.
  */
@@ -11,9 +11,9 @@
   const NOTE = 'note:';
 
   function bumpStats(prev, mode, now) {
-    const stats = { copy: 0, attach: 0, lastAt: 0, ...(prev || {}) };
+    const stats = { copy: 0, attach: 0, copyAt: 0, attachAt: 0, ...(prev || {}) };
     stats[mode] += 1;
-    stats.lastAt = now;
+    stats[`${mode}At`] = now;
     return stats;
   }
 
