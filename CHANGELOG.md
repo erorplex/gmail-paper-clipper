@@ -19,5 +19,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   like browser downloads.
 - German and English interface.
 
+### Security
+
+- Header values (subject, names, attachment names) are kept on one line in the copied text, so an email cannot
+  forge extra header lines; the attachment list shows the cleaned file names.
+- HTML-to-text conversion runs in linear time, so hostile markup cannot freeze Gmail.
+- The helper answers invalid messages with an error instead of exiting; the extension sends only well-formed
+  Unicode.
+
 [Unreleased]: https://github.com/erorplex/gmail-paper-clipper/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/erorplex/gmail-paper-clipper/releases/tag/v0.1.0

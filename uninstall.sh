@@ -1,6 +1,6 @@
 #!/bin/bash
 # Removes the Paper Clipper helper registration and its cached copies.
-# The extension itself (and its notes) is removed at chrome://extensions.
+# The extension itself, with everything it stores in Chrome, is removed at chrome://extensions.
 set -euo pipefail
 
 HOST_NAME="io.github.erorplex.paper_clipper"

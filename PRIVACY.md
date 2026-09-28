@@ -7,14 +7,15 @@ Paper Clipper for Gmail processes your email only on your own computer.
 - **Only when you click a button**, it loads the raw source of the email or thread you are looking at from
   `mail.google.com`, using your existing Gmail session in the same browser tab. The same happens when you use
   Gmail's own "Download original".
-- It does not read your inbox in the background, does not scan other emails and does not keep copies.
+- It does not read your inbox in the background and does not scan other emails.
 
 ## Where data goes
 
 - Text buttons: the formatted text goes to your clipboard. Nowhere else.
 - Attachment buttons: text and attachments go to the Paper Clipper helper on your Mac (Chrome native messaging,
   a local process). The helper writes them to `~/Library/Caches/PaperClipper` and references them on the clipboard.
-  Copies older than one hour are deleted on the next copy; `./uninstall.sh` removes the folder.
+  The most recent copy stays there so that pasting keeps working; older copies are deleted the next time you copy
+  with attachments (after one hour). `./uninstall.sh` removes the folder.
 - Nothing is sent to any server. There are no analytics, no telemetry, no remote code and no third-party libraries.
 
 ## Permissions

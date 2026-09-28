@@ -35,7 +35,7 @@ Anhänge: Angebot.pdf (240 KB), Skizze.png (39 KB)
 Hallo Erika, …
 ```
 
-Die Beschriftung folgt der Sprache des Browsers: Deutsch oder Englisch.
+Beschriftung und Datumsformat folgen der Sprache des Browsers: Deutsch oder Englisch.
 
 ## Anleitung: Installation
 
@@ -54,7 +54,7 @@ git clone https://github.com/erorplex/gmail-paper-clipper.git ~/gmail-paper-clip
 ```
 
 Ohne git: auf GitHub **Code → Download ZIP** klicken, entpacken und den Ordner an einen festen Platz schieben, zum
-Beispiel in deinen Benutzerordner.
+Beispiel in deinen Benutzerordner. Der entpackte Ordner heißt `gmail-paper-clipper-main`; der Name spielt keine Rolle.
 
 ### Schritt 2: Helfer installieren (macOS, für die Anhang-Buttons)
 
@@ -65,7 +65,8 @@ cd ~/gmail-paper-clipper && ./install.sh
 ```
 
 Das Skript kompiliert den kleinen Helfer aus `host/PaperClipperHelper.swift` und meldet ihn bei jedem gefundenen
-Chromium-Browser an. Am Ende steht `✓ helper responds`. Fehlt Swift, vorher `xcode-select --install` ausführen.
+Chromium-Browser an. Es prüft, ob der Helfer antwortet (`✓ helper responds`), und zeigt die Erweiterungs-ID. Fehlt
+Swift, vorher `xcode-select --install` ausführen.
 
 ### Schritt 3: Erweiterung in Chrome laden
 
@@ -113,7 +114,7 @@ Danach unter `chrome://extensions` bei Paper Clipper auf den Neu-laden-Pfeil kli
 | Problem | Lösung |
 | --- | --- |
 | Keine Buttons in Gmail | Gmail neu laden. Unter `chrome://extensions` prüfen, ob Paper Clipper aktiv ist und keine Fehler zeigt. |
-| „Mac-Helfer fehlt“ | Im Ordner der Erweiterung `./install.sh` ausführen, dann Gmail neu laden. |
+| „Mac-Helfer fehlt“ | Im Ordner der Erweiterung `./install.sh` ausführen, dann Gmail neu laden. Auch nötig, wenn du den Ordner verschoben hast. |
 | „Mac-Helfer kennt diese Erweiterung nicht“ | Du hast eine Kopie mit anderer Erweiterungs-ID geladen. `./install.sh` erneut ausführen oder `./install.sh <id>` mit der ID aus `chrome://extensions`. |
 | Im kopierten Verlauf fehlen Nachrichten | Den Verlauf einmal ganz aufklappen und erneut kopieren. Bleibt es so, bitte ein [Issue anlegen](https://github.com/erorplex/gmail-paper-clipper/issues/new/choose). |
 | Nach einem Gmail-Update geht nichts mehr | Gmail hat sein HTML geändert. Bitte [melden](https://github.com/erorplex/gmail-paper-clipper/issues/new/choose); die Korrektur liegt meist in `src/gmail.js`. |

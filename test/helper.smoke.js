@@ -26,7 +26,7 @@ function talk(messages) {
     child.on('error', reject);
     child.on('close', () => resolve(replies));
     for (const m of messages) {
-      const body = Buffer.from(JSON.stringify(m));
+      const body = Buffer.from(typeof m === 'string' ? m : JSON.stringify(m));
       const head = Buffer.alloc(4);
       head.writeUInt32LE(body.length);
       child.stdin.write(Buffer.concat([head, body]));
@@ -82,4 +82,12 @@ test('helper puts text and every file on the pasteboard', { skip }, async () => 
 test('file before begin is rejected', { skip }, async () => {
   const [reply] = await talk([{ type: 'file', name: 'a.txt', data: b64('x') }]);
   assert.equal(reply.ok, false);
+});
+
+test('invalid JSON gets an error reply and the helper keeps going', { skip }, async () => {
+  // Chrome serialises a lone surrogate as "\ud800", which Foundation's JSON parser rejects.
+  const replies = await talk(['{"type":"ping","x":"\\ud800"}', { type: 'ping' }]);
+  assert.equal(replies.length, 2);
+  assert.deepEqual(replies[0], { ok: false, error: 'invalid message' });
+  assert.equal(replies[1].ok, true);
 });

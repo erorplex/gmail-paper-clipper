@@ -38,7 +38,7 @@ Attachments: Offer.pdf (240 KB), Sketch.png (39 KB)
 Hi Erika, …
 ```
 
-The labels follow your browser language. German and English are built in.
+Labels and date format follow your browser language. German and English are built in.
 
 ## Installation guide
 
@@ -57,7 +57,7 @@ git clone https://github.com/erorplex/gmail-paper-clipper.git ~/gmail-paper-clip
 ```
 
 Without git: on GitHub, click **Code → Download ZIP**, unzip it and move the folder to a permanent place, for example
-your home folder.
+your home folder. The unzipped folder is called `gmail-paper-clipper-main`; the name does not matter.
 
 ### Step 2: Install the helper (macOS, for the attachment buttons)
 
@@ -68,7 +68,8 @@ cd ~/gmail-paper-clipper && ./install.sh
 ```
 
 The script compiles the small helper from `host/PaperClipperHelper.swift` and registers it with every Chromium
-browser it finds. It ends with `✓ helper responds`. If Swift is missing, run `xcode-select --install` first.
+browser it finds, checks that the helper answers (`✓ helper responds`) and prints the extension id. If Swift is
+missing, run `xcode-select --install` first.
 
 ### Step 3: Load the extension in Chrome
 
@@ -116,7 +117,7 @@ Run `./uninstall.sh` and remove the extension at `chrome://extensions`.
 | Problem | Fix |
 | --- | --- |
 | No buttons in Gmail | Reload Gmail. Check at `chrome://extensions` that Paper Clipper is enabled and shows no errors. |
-| "Mac helper missing" | Run `./install.sh` in the extension folder, then reload Gmail. |
+| "Mac helper missing" | Run `./install.sh` in the extension folder, then reload Gmail. Also needed after moving the folder. |
 | "The Mac helper does not know this extension" | You loaded a copy with a different extension id. Run `./install.sh` again, or `./install.sh <id>` with the id shown at `chrome://extensions`. |
 | A thread copy has fewer messages than expected | Open the thread fully once and copy again. If it persists, please [open an issue](https://github.com/erorplex/gmail-paper-clipper/issues/new/choose). |
 | Buttons stopped working after a Gmail update | Gmail changed its markup. Please [report it](https://github.com/erorplex/gmail-paper-clipper/issues/new/choose); the fix usually lives in `src/gmail.js`. |

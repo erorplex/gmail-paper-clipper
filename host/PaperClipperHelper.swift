@@ -22,7 +22,14 @@ struct HelperError: Error, CustomStringConvertible {
     let description: String
 }
 
-func readMessage() -> [String: Any]? {
+enum Incoming {
+    case message([String: Any])
+    case invalid
+}
+
+// nil means Chrome closed the pipe. Invalid JSON (e.g. an escaped lone surrogate, which Foundation
+// rejects) gets an error reply instead of silently ending the helper.
+func readMessage() -> Incoming? {
     let input = FileHandle.standardInput
     let header = [UInt8](input.readData(ofLength: 4))
     guard header.count == 4 else { return nil }
@@ -33,7 +40,8 @@ func readMessage() -> [String: Any]? {
         if chunk.isEmpty { return nil }
         data.append(chunk)
     }
-    return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    guard let message = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return .invalid }
+    return .message(message)
 }
 
 func send(_ message: [String: Any]) {
@@ -154,7 +162,11 @@ func handle(_ message: [String: Any]) throws -> [String: Any] {
     }
 }
 
-while let message = readMessage() {
+while let incoming = readMessage() {
+    guard case .message(let message) = incoming else {
+        send(["ok": false, "error": "invalid message"])
+        continue
+    }
     do {
         send(try handle(message))
     } catch {

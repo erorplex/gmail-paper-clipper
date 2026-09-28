@@ -143,3 +143,47 @@ test('safeFilename, formatSize and collectFiles', () => {
   assert.equal(files[0].encoding, 'utf8');
   assert.equal(files[1].encoding, 'binary');
 });
+
+test('file names and entities never produce lone surrogates (the helper rejects them)', () => {
+  const name = safeFilename('a'.repeat(95) + '😀😀😀.txt');
+  assert.ok(name.isWellFormed(), JSON.stringify(name));
+  assert.ok(name.endsWith('.txt'));
+  assert.equal(htmlToText('<p>&#xD800;x&#0;y&#x110000;</p>'), '�x�y�');
+});
+
+test('header values stay on one line and show cleaned attachment names', () => {
+  const text = formatMessage(
+    msg({
+      subject: 'Rechnung\nDatum: gestern',
+      from: [{ name: 'Max\r\nAn: alle', address: 'max@example.org' }],
+      attachments: [{ filename: 'invoice‮fdp.exe', size: 10 }, { filename: 'a\nAnhänge: nichts.pdf', size: 10 }],
+    }),
+    opts
+  );
+  const lines = text.split('\n');
+  assert.equal(lines[0], 'Betreff: Rechnung Datum: gestern');
+  assert.equal(lines[1], 'Von: Max An: alle <max@example.org>');
+  assert.equal(lines.filter((l) => l.startsWith('Anhänge:')).length, 1);
+  assert.match(text, /Anhänge: invoicefdp\.exe \(10 B\), a_Anhänge_ nichts\.pdf \(10 B\)/);
+});
+
+test('quote stripping needs a date in the attribution and keeps forwards in threads', () => {
+  const plain = 'Am Montag schrieb der Kunde folgendes:\nBitte bis Freitag liefern.';
+  assert.equal(stripQuotedReply(plain), plain);
+
+  const forward = msg({
+    subject: 'WG: Angebot Q4',
+    text: 'Zur Info, siehe unten.\n\n________________________________\nVon: Max Muster <max@example.org>\nGesendet: Montag, 28. September 2026 14:03\n\nDer weitergeleitete Inhalt.',
+  });
+  assert.match(formatThread([msg(), forward], opts), /Der weitergeleitete Inhalt\./);
+});
+
+test('htmlToText stays linear on hostile markup and keeps <header> content', () => {
+  const hostile = '<!--'.repeat(20000) + '<a href="https://x.example">'.repeat(20000) + '<br'.repeat(20000);
+  const started = Date.now();
+  htmlToText(hostile);
+  htmlToText('<style>'.repeat(20000) + 'x');
+  assert.ok(Date.now() - started < 300, `took ${Date.now() - started} ms`);
+  assert.equal(htmlToText('<head><title>t</title></head><header>Kopf</header><p>Text</p>'), 'Kopf\n\nText');
+  assert.equal(htmlToText('1 < 2 und 3 > 2'), '1 < 2 und 3 > 2');
+});

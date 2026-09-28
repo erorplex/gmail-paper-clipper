@@ -131,7 +131,7 @@
 
   function explain(err) {
     const msg = String((err && err.message) || err);
-    if (/native messaging host not found/i.test(msg)) return T.helperMissing;
+    if (/native messaging host not found|failed to start native messaging host/i.test(msg)) return T.helperMissing;
     if (/forbidden/i.test(msg)) return T.helperForbidden;
     if (err && err.userFacing) return msg;
     return `${T.failed}: ${msg}`;
@@ -180,6 +180,11 @@
     if (!ok) throw userError(T.clipboardFailed);
   }
 
+  // Lone surrogates (a cut emoji, a bogus &#xD800;) would reach the helper as JSON it cannot parse.
+  function wellFormed(s) {
+    return typeof s.toWellFormed === 'function' ? s.toWellFormed() : s;
+  }
+
   function toBase64(file) {
     const binary = file.encoding === 'utf8' ? PC.toBinaryString(new TextEncoder().encode(file.data)) : file.data;
     return btoa(binary);
@@ -206,8 +211,8 @@
     return (async () => {
       try {
         await call({ type: 'begin' });
-        for (const file of files) await call({ type: 'file', name: file.name, data: toBase64(file) });
-        return await call({ type: 'commit', text });
+        for (const file of files) await call({ type: 'file', name: wellFormed(file.name), data: toBase64(file) });
+        return await call({ type: 'commit', text: wellFormed(text) });
       } finally {
         port.disconnect();
       }
