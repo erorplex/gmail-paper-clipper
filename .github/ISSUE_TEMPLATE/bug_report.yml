@@ -1,0 +1,53 @@
+name: Bug report
+description: Something does not work, for example after a Gmail update.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please never paste real email content or addresses. Made-up examples are fine.
+  - type: dropdown
+    id: button
+    attributes:
+      label: Which button?
+      options:
+        - Copy
+        - With attachments
+        - Copy thread
+        - Thread + attachments
+        - No buttons visible
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: 1. Open a thread with three replies … 2. Click … 3. Paste into …
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: Paper Clipper 0.1.0, Chrome 140, macOS 26
+    validations:
+      required: true
+  - type: dropdown
+    id: view
+    attributes:
+      label: Gmail view
+      options:
+        - Default (full width)
+        - Split pane (right or below)
+        - Popped-out window
+        - Not sure
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Right click in Gmail → Inspect → Console, filter for "Paper Clipper".
+      render: text

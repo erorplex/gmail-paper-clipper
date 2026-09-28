@@ -6,7 +6,7 @@
 (function () {
   'use strict';
 
-  const MC = globalThis.MailClip;
+  const PC = globalThis.PaperClipper;
   const locale = navigator.language || 'de-DE';
 
   const T = locale.toLowerCase().startsWith('de')
@@ -77,7 +77,7 @@
   function button(label, title, iconPath, action) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.className = 'mailclip-btn';
+    b.className = 'paper-clipper-btn';
     b.title = title;
     b.append(icon(iconPath), document.createTextNode(label));
     // Keep Gmail from treating the click as "collapse message" or similar.
@@ -92,7 +92,7 @@
 
   function bar(kind, buttons) {
     const el = document.createElement('div');
-    el.className = `mailclip-bar mailclip-${kind}`;
+    el.className = `paper-clipper-bar paper-clipper-${kind}`;
     el.append(...buttons);
     return el;
   }
@@ -102,7 +102,7 @@
   function toast(text, { error = false, sticky = false } = {}) {
     if (!toastEl) {
       toastEl = document.createElement('div');
-      toastEl.className = 'mailclip-toast';
+      toastEl.className = 'paper-clipper-toast';
       toastEl.setAttribute('role', 'status');
       document.body.append(toastEl);
     }
@@ -117,21 +117,21 @@
   async function run(action) {
     if (busy) return;
     busy = true;
-    document.documentElement.classList.add('mailclip-busy');
+    document.documentElement.classList.add('paper-clipper-busy');
     try {
       toast(await action());
     } catch (err) {
-      console.error('[MailClip]', err);
+      console.error('[Paper Clipper]', err);
       toast(explain(err), { error: true });
     } finally {
       busy = false;
-      document.documentElement.classList.remove('mailclip-busy');
+      document.documentElement.classList.remove('paper-clipper-busy');
     }
   }
 
   function explain(err) {
     const msg = String((err && err.message) || err);
-    if (/native messaging host not found/i.test(msg)) return T.helperMissing;
+    if (/native messaging host not found|failed to start native messaging host/i.test(msg)) return T.helperMissing;
     if (/forbidden/i.test(msg)) return T.helperForbidden;
     if (err && err.userFacing) return msg;
     return `${T.failed}: ${msg}`;
@@ -146,15 +146,15 @@
   async function copy(refs, { thread, withAttachments }) {
     if (!refs.length) throw userError(T.noMessages);
     toast(T.loading(refs.length), { sticky: true });
-    const msgs = (await MC.fetchRawAll(refs)).map((raw) => MC.parseMessage(raw));
-    const text = thread ? MC.formatThread(msgs, { locale }) : MC.formatMessage(msgs[0], { locale });
+    const msgs = (await PC.fetchRawAll(refs)).map((raw) => PC.parseMessage(raw));
+    const text = thread ? PC.formatThread(msgs, { locale }) : PC.formatMessage(msgs[0], { locale });
     const what = thread ? T.threadOf(msgs.length) : T.mail;
 
     if (!withAttachments) {
       await writeClipboard(text);
       return T.copied(what);
     }
-    const files = MC.collectFiles(msgs, MC.textFileName(msgs[0].subject, thread, locale), text);
+    const files = PC.collectFiles(msgs, PC.textFileName(msgs[0].subject, thread, locale), text);
     if (files.length === 1) {
       await writeClipboard(text);
       return T.noAttachments(what);
@@ -180,14 +180,19 @@
     if (!ok) throw userError(T.clipboardFailed);
   }
 
+  // Lone surrogates (a cut emoji, a bogus &#xD800;) would reach the helper as JSON it cannot parse.
+  function wellFormed(s) {
+    return typeof s.toWellFormed === 'function' ? s.toWellFormed() : s;
+  }
+
   function toBase64(file) {
-    const binary = file.encoding === 'utf8' ? MC.toBinaryString(new TextEncoder().encode(file.data)) : file.data;
+    const binary = file.encoding === 'utf8' ? PC.toBinaryString(new TextEncoder().encode(file.data)) : file.data;
     return btoa(binary);
   }
 
   // One message per file keeps every message far below Chrome's native messaging size limit.
   function helperCopy(text, files) {
-    const port = chrome.runtime.connect({ name: 'mailclip-helper' });
+    const port = chrome.runtime.connect({ name: 'paper-clipper-helper' });
     const pending = [];
     port.onMessage.addListener((reply) => {
       const p = pending.shift();
@@ -206,8 +211,8 @@
     return (async () => {
       try {
         await call({ type: 'begin' });
-        for (const file of files) await call({ type: 'file', name: file.name, data: toBase64(file) });
-        return await call({ type: 'commit', text });
+        for (const file of files) await call({ type: 'file', name: wellFormed(file.name), data: toBase64(file) });
+        return await call({ type: 'commit', text: wellFormed(text) });
       } finally {
         port.disconnect();
       }
@@ -217,11 +222,11 @@
   // ---------- Buttons in Gmail ----------
 
   function currentSubject(original) {
-    return original.isConnected ? original : MC.visibleSubjects()[0];
+    return original.isConnected ? original : PC.visibleSubjects()[0];
   }
 
   function threadBar(subject) {
-    const refs = () => MC.threadMessageRefs(currentSubject(subject));
+    const refs = () => PC.threadMessageRefs(currentSubject(subject));
     return bar('thread', [
       button(T.thread, T.threadTitle, ICONS.thread, async () => copy(await refs(), { thread: true, withAttachments: false })),
       button(T.threadWithAttachments, T.threadWithAttachmentsTitle, ICONS.attach, async () =>
@@ -239,12 +244,12 @@
   }
 
   function scan() {
-    for (const subject of MC.visibleSubjects()) {
+    for (const subject of PC.visibleSubjects()) {
       const next = subject.parentElement.nextElementSibling;
-      if (!(next && next.classList.contains('mailclip-thread'))) MC.insertThreadBar(subject, threadBar(subject));
+      if (!(next && next.classList.contains('paper-clipper-thread'))) PC.insertThreadBar(subject, threadBar(subject));
     }
-    for (const { element, body, ref } of MC.expandedMessages()) {
-      if (!element.querySelector('.mailclip-message')) MC.insertMessageBar(body, messageBar(ref));
+    for (const { element, body, ref } of PC.expandedMessages()) {
+      if (!element.querySelector('.paper-clipper-message')) PC.insertMessageBar(body, messageBar(ref));
     }
   }
 

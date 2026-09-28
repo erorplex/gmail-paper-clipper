@@ -1,11 +1,24 @@
 {
-  "name": "mailclip",
-  "version": "1.0.0",
+  "name": "gmail-paper-clipper",
+  "version": "0.1.0",
   "private": true,
   "description": "Chrome extension: copy Gmail emails and threads, optionally with attachments as real files (macOS helper)",
   "license": "MIT",
   "scripts": {
     "test": "node --test test/*.test.js",
+    "test:helper": "node --test test/helper.smoke.js",
+    "build:helper": "mkdir -p host/build && xcrun swiftc -O host/PaperClipperHelper.swift -o host/build/paper-clipper-helper",
     "icons": "node scripts/make-icons.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/erorplex/gmail-paper-clipper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/erorplex/gmail-paper-clipper/issues"
+  },
+  "homepage": "https://github.com/erorplex/gmail-paper-clipper#readme",
+  "engines": {
+    "node": ">=20"
   }
 }

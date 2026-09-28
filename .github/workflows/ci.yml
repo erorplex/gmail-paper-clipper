@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Syntax check
+        run: for f in src/*.js scripts/*.js test/*.js; do node --check "$f"; done
+      - name: Manifest and locales are valid JSON
+        run: node -e 'for (const f of ["manifest.json", "_locales/de/messages.json", "_locales/en/messages.json"]) JSON.parse(require("fs").readFileSync(f, "utf8"))'
+      - name: Unit tests
+        run: npm test
+      - name: Shell scripts
+        run: shellcheck install.sh uninstall.sh
+
+  helper:
+    name: macOS helper
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Build
+        run: npm run build:helper
+      - name: End-to-end test
+        run: npm run test:helper

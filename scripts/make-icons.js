@@ -1,4 +1,4 @@
-// Renders the extension icons (rounded square with an envelope) as PNGs without dependencies.
+// Renders the extension icons (rounded square with a paperclip) as PNGs without dependencies.
 // Usage: node scripts/make-icons.js
 const fs = require('fs');
 const path = require('path');
@@ -54,15 +54,34 @@ function distToSegment(x, y, ax, ay, bx, by) {
   return Math.hypot(x - (ax + t * (bx - ax)), y - (ay + t * (by - ay)));
 }
 
+// Paperclip as one wire: straight segments joined by half circles, tilted 45°.
 // Everything in unit coordinates (0..1).
+const WIRE = 0.06;
+const PARTS = [
+  { line: [0.43, 0.36, 0.43, 0.62] },
+  { arc: [0.5, 0.62, 0.07, 'down'] },
+  { line: [0.57, 0.62, 0.57, 0.3] },
+  { arc: [0.45, 0.3, 0.12, 'up'] },
+  { line: [0.33, 0.3, 0.33, 0.66] },
+  { arc: [0.5, 0.66, 0.17, 'down'] },
+  { line: [0.67, 0.66, 0.67, 0.26] },
+];
+
+function distToArc(x, y, cx, cy, r, side) {
+  const onSide = side === 'down' ? y >= cy : y <= cy;
+  if (onSide) return Math.abs(Math.hypot(x - cx, y - cy) - r);
+  return Math.min(Math.hypot(x - (cx - r), y - cy), Math.hypot(x - (cx + r), y - cy));
+}
+
 function sample(x, y) {
   if (!insideRoundedRect(x, y, 0.02, 0.02, 0.98, 0.98, 0.22)) return null;
-  const w = 0.075; // stroke width
-  const [l, t, r, b] = [0.2, 0.3, 0.8, 0.72];
-  const outer = insideRoundedRect(x, y, l - w / 2, t - w / 2, r + w / 2, b + w / 2, 0.06);
-  const inner = insideRoundedRect(x, y, l + w / 2, t + w / 2, r - w / 2, b - w / 2, 0.02);
-  const flap = Math.min(distToSegment(x, y, l, t, 0.5, 0.53), distToSegment(x, y, r, t, 0.5, 0.53)) <= w / 2;
-  return (outer && !inner) || (flap && outer) ? FG : BG;
+  const a = Math.PI / 4;
+  const rx = 0.5 + (x - 0.5) * Math.cos(a) + (y - 0.5) * Math.sin(a);
+  const ry = 0.5 - (x - 0.5) * Math.sin(a) + (y - 0.5) * Math.cos(a);
+  const d = Math.min(
+    ...PARTS.map((p) => (p.line ? distToSegment(rx, ry, ...p.line) : distToArc(rx, ry, ...p.arc)))
+  );
+  return d <= WIRE / 2 ? FG : BG;
 }
 
 const outDir = path.join(__dirname, '..', 'icons');

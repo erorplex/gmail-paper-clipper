@@ -1,7 +1,8 @@
-// MailClip helper for macOS.
+// Paper Clipper helper for macOS.
 // Chrome starts it via native messaging (4-byte little-endian length + UTF-8 JSON on stdin/stdout).
-// It writes the files it receives to ~/Library/Caches/MailClip and puts the mail text plus those
+// It writes the files it receives to ~/Library/Caches/PaperClipper and puts the mail text plus those
 // files on the general pasteboard, so Cmd+V pastes real attachments (Finder, Claude, Slack, ...).
+// Files are quarantined like browser downloads, so Gatekeeper checks them before they are opened.
 //
 // Protocol, one reply per message:
 //   {"type":"ping"}                                 -> {"ok":true,"version":"..."}
@@ -10,17 +11,25 @@
 //   {"type":"commit","text":"..."}                  -> writes text + files to the pasteboard
 
 import AppKit
+import CoreServices
 import Foundation
 
-let version = "1.0.0"
+let version = "0.1.0"
 let cacheRoot = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-    .appendingPathComponent("MailClip", isDirectory: true)
+    .appendingPathComponent("PaperClipper", isDirectory: true)
 
 struct HelperError: Error, CustomStringConvertible {
     let description: String
 }
 
-func readMessage() -> [String: Any]? {
+enum Incoming {
+    case message([String: Any])
+    case invalid
+}
+
+// nil means Chrome closed the pipe. Invalid JSON (e.g. an escaped lone surrogate, which Foundation
+// rejects) gets an error reply instead of silently ending the helper.
+func readMessage() -> Incoming? {
     let input = FileHandle.standardInput
     let header = [UInt8](input.readData(ofLength: 4))
     guard header.count == 4 else { return nil }
@@ -31,7 +40,8 @@ func readMessage() -> [String: Any]? {
         if chunk.isEmpty { return nil }
         data.append(chunk)
     }
-    return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+    guard let message = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return .invalid }
+    return .message(message)
 }
 
 func send(_ message: [String: Any]) {
@@ -41,13 +51,28 @@ func send(_ message: [String: Any]) {
     FileHandle.standardOutput.write(header + data)
 }
 
+// Bidi controls could disguise "invoice\u{202E}fdp.exe" as "invoiceexe.pdf".
+let hiddenScalars: [ClosedRange<UInt32>] = [0x00...0x1F, 0x7F...0x9F, 0x200E...0x200F, 0x202A...0x202E, 0x2066...0x2069, 0x061C...0x061C]
+
 func safeName(_ name: String) -> String {
-    let cleaned = name
+    var scalars = String.UnicodeScalarView()
+    scalars.append(contentsOf: name.unicodeScalars.filter { s in !hiddenScalars.contains { $0.contains(s.value) } })
+    let cleaned = String(scalars)
         .replacingOccurrences(of: "/", with: "_")
         .replacingOccurrences(of: ":", with: "_")
         .trimmingCharacters(in: .whitespacesAndNewlines)
-    if cleaned.isEmpty || cleaned.hasPrefix(".") { return "Anhang" + cleaned }
+    if cleaned.isEmpty || cleaned.hasPrefix(".") { return "attachment" + cleaned }
     return String(cleaned.prefix(200))
+}
+
+func quarantine(_ url: URL) {
+    var values = URLResourceValues()
+    values.quarantineProperties = [
+        kLSQuarantineAgentNameKey as String: "Paper Clipper",
+        kLSQuarantineTypeKey as String: kLSQuarantineTypeOtherDownload as String,
+    ]
+    var target = url
+    try? target.setResourceValues(values)
 }
 
 func uniqueURL(in dir: URL, name: String) -> URL {
@@ -99,6 +124,7 @@ func handle(_ message: [String: Any]) throws -> [String: Any] {
         else { throw HelperError(description: "invalid file message") }
         let url = uniqueURL(in: dir, name: safeName(name))
         try data.write(to: url)
+        quarantine(url)
         files.append(url)
         return ["ok": true]
 
@@ -136,7 +162,11 @@ func handle(_ message: [String: Any]) throws -> [String: Any] {
     }
 }
 
-while let message = readMessage() {
+while let incoming = readMessage() {
+    guard case .message(let message) = incoming else {
+        send(["ok": false, "error": "invalid message"])
+        continue
+    }
     do {
         send(try handle(message))
     } catch {
