@@ -46,6 +46,17 @@
     return null;
   }
 
+  // Stable id of the conversation, used for thread counters and notes.
+  function threadId(subject) {
+    const legacy = subject.getAttribute('data-legacy-thread-id');
+    if (legacy) return legacy;
+    const perm = subject.getAttribute('data-thread-perm-id');
+    if (perm) return perm;
+    const container = threadContainer(subject);
+    const first = container && messageRefs(container)[0];
+    return first ? first.id || first.perm : null;
+  }
+
   function visibleSubjects() {
     return [...document.querySelectorAll(SUBJECT)].filter(isVisible);
   }
@@ -135,6 +146,7 @@
   Object.assign(exports, {
     isVisible,
     visibleSubjects,
+    threadId,
     expandedMessages,
     insertThreadBar,
     insertMessageBar,

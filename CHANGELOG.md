@@ -17,6 +17,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Thread output with numbered messages and quoted reply history removed; forwarded emails are kept.
 - macOS helper (Swift, native messaging) that puts text and attachments on the clipboard as real files, quarantined
   like browser downloads.
+- Copy counters on every copy button: how often an email or thread was copied that way, and when last.
+- Notes per thread: autosaving note field below the subject that reopens with the thread; toolbar popup lists all
+  notes with search, link back to Gmail, delete and JSON export. Stored only locally.
 - German and English interface.
 
 ### Security

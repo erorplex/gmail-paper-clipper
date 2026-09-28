@@ -1,7 +1,7 @@
 # Paper Clipper für Gmail
 
 **Eine Gmail-Mail oder einen ganzen Verlauf mit einem Klick kopieren: Betreff, Absender, Empfänger, Datum und Text.
-Auf Wunsch kommen die Anhänge als echte Dateien mit.**
+Auf Wunsch kommen die Anhänge als echte Dateien mit. Zu jedem Verlauf kannst du eigene Notizen schreiben.**
 
 Mit ⌘V einfügen in Claude, ChatGPT, Slack, ein Ticket oder den Finder. Die PDFs kommen dabei als PDFs an, nicht als
 Textzeile.
@@ -21,6 +21,10 @@ In Gmail erscheinen zwei Button-Leisten:
 | an jeder geöffneten Mail | **Mit Anhängen** | Text und jeder Anhang als Datei |
 | unter dem Betreff | **Verlauf kopieren** | alle Mails der Unterhaltung, nummeriert, ohne doppelte Zitate |
 | unter dem Betreff | **Verlauf + Anhänge** | der Verlauf und alle Anhänge, jeder nur einmal |
+| unter dem Betreff | **Notiz** | öffnet deine Notiz zu diesem Verlauf (siehe [Notizen](#anleitung-notizen)) |
+
+Jeder Kopier-Button zählt, wie oft du diese Mail oder diesen Verlauf damit schon kopiert hast. Die Zahl steht am
+Button, der Tooltip zeigt, wann zuletzt. So siehst du sofort, was du schon weitergegeben hast.
 
 Beispiel für **Kopieren**:
 
@@ -96,6 +100,16 @@ Gmail neu laden und eine Mail öffnen. Die Buttons stehen unter dem Betreff und 
   damit nichts doppelt vorkommt. Weitergeleitete Mails bleiben erhalten. **Kopieren** an einer einzelnen Mail
   behält den vollen Text.
 - Kleine eingebettete Bilder unter 30 KB, meist Signatur-Logos, werden übersprungen. Eingefügte Screenshots kommen mit.
+
+## Anleitung: Notizen
+
+- Unter dem Betreff auf **Notiz** klicken und schreiben. Die Notiz speichert sich beim Tippen von selbst.
+- Öffnest du den Verlauf wieder, klappt die Notiz von selbst auf und der Button **Notiz** ist hervorgehoben.
+- Text leeren löscht die Notiz.
+- Ein Klick auf das Paper-Clipper-Symbol in der Chrome-Symbolleiste zeigt alle Notizen: neueste zuerst, mit Suche,
+  Link zurück zur Mail, Löschen und **Export** als JSON.
+- Notizen und Zähler liegen nur in diesem Browser (`chrome.storage.local`). Sie werden nicht synchronisiert und beim
+  Entfernen der Erweiterung gelöscht. Vorher exportieren.
 
 ## Aktualisieren
 

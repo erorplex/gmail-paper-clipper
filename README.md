@@ -5,7 +5,7 @@
 ![Platform: Chrome · macOS](https://img.shields.io/badge/platform-Chrome%20%C2%B7%20macOS-lightgrey)
 
 **Copy a Gmail email or a whole thread in one click: subject, sender, recipients, date and text. The attachments
-can come along as real files.**
+can come along as real files. Keep private notes on any thread.**
 
 Paste into Claude, ChatGPT, Slack, a ticket or the Finder with ⌘V. The PDFs arrive as PDFs, not as a line of text.
 
@@ -24,6 +24,10 @@ Two button bars appear in Gmail:
 | every opened email | **With attachments** | text plus every attachment as a file |
 | below the subject | **Copy thread** | every email of the conversation, numbered, quoted history removed |
 | below the subject | **Thread + attachments** | the thread plus all attachments, each one once |
+| below the subject | **Note** | opens your note on this thread (see [Notes](#notes)) |
+
+Each copy button counts how often you copied this email or thread with it. The number sits on the button and the
+tooltip shows when you copied it last, so you see at a glance what you already passed on.
 
 Example of **Copy**:
 
@@ -100,6 +104,16 @@ Click **With attachments**, switch to the Finder and press ⌘V: the attachments
 - Small images embedded in the text, under 30 KB and usually signature logos, are skipped. Pasted screenshots are
   kept.
 
+## Notes
+
+- Click **Note** below the subject and type. The note saves itself while you type.
+- The next time you open the thread, the note opens by itself and the **Note** button is highlighted.
+- Clearing the text deletes the note.
+- Click the Paper Clipper icon in the Chrome toolbar to see all notes: newest first, with search, a link back to
+  the email, delete, and **export** as JSON.
+- Notes and counters are stored only in this browser (`chrome.storage.local`). They are not synced and are deleted
+  when you remove the extension. Export them first.
+
 ## Updating
 
 ```bash
@@ -150,7 +164,7 @@ Everything stays on your computer. No server, no analytics, no third-party code.
 ## Development
 
 ```bash
-npm test              # parser, formatting and version tests (Node ≥ 20, no dependencies)
+npm test              # parser, formatting, storage and version tests (Node ≥ 20, no dependencies)
 npm run build:helper  # compile the macOS helper
 npm run test:helper   # end-to-end helper test (macOS, overwrites the clipboard)
 npm run icons         # render the icons
@@ -160,8 +174,10 @@ npm run icons         # render the icons
 
 ```
 manifest.json         Manifest V3
-src/content.js        buttons, notifications, copy flow
+src/content.js        buttons, counters, notes, notifications, copy flow
 src/gmail.js          everything Gmail-specific (DOM selectors, raw message URL)
+src/store.js          counters and notes in chrome.storage.local
+src/popup.*           toolbar popup with all notes
 src/mime.js           MIME parser
 src/format.js         text output, quote stripping, file list
 src/background.js     relay to the macOS helper
