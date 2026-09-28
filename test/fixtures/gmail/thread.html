@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- A minimal stand-in for Gmail's thread view: only the markup src/gmail.js relies on. -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Mock Gmail</title>
+  </head>
+  <body style="font-family: Arial, sans-serif">
+    <div role="main">
+      <div class="nH"><div class="ha"><h2 class="hP" data-legacy-thread-id="18a0000000000001">Angebot Q4</h2></div></div>
+      <div class="nH if" id="conv">
+        <div class="kv"><div class="adn ads" data-message-id="#msg-f:1765432109876543210" data-legacy-message-id="18a0000000000001">Max Muster (collapsed)</div></div>
+        <div class="adv" id="older"><span class="adx">1</span></div>
+        <div class="h7">
+          <div class="adn ads" data-legacy-message-id="18a0000000000003">
+            <div class="gs">
+              <div>Max Muster &lt;max@example.org&gt;</div>
+              <div class="ii gt"><div class="a3s">Klar, siehe Skizze im Anhang.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Like Gmail, the "older messages" bubble only renders the hidden message when clicked.
+      document.getElementById('older').addEventListener('click', () => {
+        setTimeout(() => {
+          const row = document.createElement('div');
+          row.className = 'kv';
+          const msg = document.createElement('div');
+          msg.className = 'adn ads';
+          msg.dataset.messageId = '#msg-f:1765432109876543211';
+          msg.dataset.legacyMessageId = '18a0000000000002';
+          msg.textContent = 'Erika Beispiel (collapsed)';
+          row.append(msg);
+          document.getElementById('older').replaceWith(row);
+        }, 200);
+      });
+    </script>
+  </body>
+</html>

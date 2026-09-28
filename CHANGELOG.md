@@ -20,6 +20,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 - Copy counters on every copy button: how often an email or thread was copied that way, and when last.
 - Notes per thread: autosaving note field below the subject that reopens with the thread; toolbar popup lists all
   notes with search, link back to Gmail, delete and JSON export. Stored only locally.
+- Automatic updates for git checkouts: `./auto-update.sh on` pulls `main` every five minutes (launchd) and
+  rebuilds the helper when it changed; `./update.sh` does the same once.
+- Unpacked installs reload themselves when their files change, and open Gmail tabs switch to the new version
+  without a reload (also after a normal install or update).
+- End-to-end test of the real extension in Chromium against a mocked Gmail, run in CI.
 - German and English interface.
 
 ### Security

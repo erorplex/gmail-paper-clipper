@@ -3,6 +3,8 @@
 # The extension itself, with everything it stores in Chrome, is removed at chrome://extensions.
 set -euo pipefail
 
+"$(dirname "$0")/auto-update.sh" off-if-here
+
 HOST_NAME="io.github.erorplex.paper_clipper"
 BROWSERS=(
   "Google/Chrome"

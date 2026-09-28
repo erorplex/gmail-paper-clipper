@@ -113,15 +113,39 @@ Gmail neu laden und eine Mail öffnen. Die Buttons stehen unter dem Betreff und 
 
 ## Aktualisieren
 
+### Automatisch (empfohlen)
+
 ```bash
-cd ~/gmail-paper-clipper && git pull && ./install.sh
+cd ~/gmail-paper-clipper && ./auto-update.sh on
 ```
 
-Danach unter `chrome://extensions` bei Paper Clipper auf den Neu-laden-Pfeil klicken und Gmail neu laden.
+Ein kleiner Hintergrunddienst (launchd) schaut alle fünf Minuten auf GitHub nach neuen Commits auf `main` und holt
+sie. Innerhalb einer Minute bemerkt Paper Clipper die neuen Dateien, lädt sich selbst neu und stellt offene
+Gmail-Tabs auf die neue Version um, ohne dass du etwas neu laden musst. Hat sich der Helfer geändert, wird er neu
+gebaut.
+
+- `./auto-update.sh status` zeigt, ob es läuft, und die letzten Log-Zeilen; `./auto-update.sh off` schaltet es ab.
+- Ein Ordner mit lokalen Änderungen oder auf einem anderen Branch wird nie angefasst.
+- Leg den Ordner nicht in Dokumente, Schreibtisch oder Downloads; dort blockiert macOS Hintergrunddienste.
+- Automatische Updates übernehmen alles, was auf `main` landet. Du vertraust dem Projekt also wie jeder Software,
+  die sich selbst aktualisiert.
+
+### Von Hand
+
+```bash
+cd ~/gmail-paper-clipper && ./update.sh
+```
+
+Paper Clipper übernimmt die neuen Dateien innerhalb einer Minute von selbst.
+
+**Installiert, bevor es automatische Updates gab?** Einmal `git pull && ./install.sh` ausführen und unter
+`chrome://extensions` bei Paper Clipper auf den Neu-laden-Pfeil klicken. Danach gilt alles oben Beschriebene. Nach
+dem Verschieben des Ordners `./auto-update.sh on` am neuen Ort erneut ausführen.
 
 ## Deinstallieren
 
-`./uninstall.sh` ausführen und die Erweiterung unter `chrome://extensions` entfernen.
+`./uninstall.sh` ausführen (schaltet auch die automatischen Updates ab) und die Erweiterung unter
+`chrome://extensions` entfernen.
 
 ## Hilfe bei Problemen
 

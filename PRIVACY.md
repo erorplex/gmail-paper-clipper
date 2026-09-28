@@ -20,16 +20,20 @@ Paper Clipper for Gmail processes your email only on your own computer.
   subject and the Gmail link of the thread. Copy counters are a local record of which email or thread you copied
   and when. Neither is synced or shared. Notes can be deleted and exported in the toolbar popup; counters are
   deleted together with the extension.
+- If you turn on automatic updates (`./auto-update.sh on`), a background job runs `git fetch` against github.com
+  every five minutes. It sends no data about you or your email; GitHub sees a normal anonymous git request.
 - Nothing is sent to any server. There are no analytics, no telemetry, no remote code and no third-party libraries.
 
 ## Permissions
 
 | Permission | Why |
 | --- | --- |
-| Access to `mail.google.com` (content script) | show the buttons and load the email you choose to copy |
+| Access to `mail.google.com` (content script, host permission) | show the buttons, load the email you choose to copy, and switch open Gmail tabs to a new version after an update |
 | `clipboardWrite` | put the text on the clipboard |
 | `nativeMessaging` | talk to the local macOS helper for attachments |
 | `storage` | keep your notes and copy counters on this computer |
+| `alarms` | unpacked installs only: check once a minute whether the extension files changed after an update |
+| `scripting` | after an install or update, bring open Gmail tabs to the new version |
 
 ## Contact
 
