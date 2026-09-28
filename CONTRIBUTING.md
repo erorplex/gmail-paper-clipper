@@ -17,10 +17,13 @@ npm test              # no install step, no dependencies
 ./install.sh          # macOS: build and register the helper
 ```
 
-Load the folder at `chrome://extensions` (Developer mode → Load unpacked). After a change, click the reload arrow
-there and reload Gmail.
+Load the folder at `chrome://extensions` (Developer mode → Load unpacked). The extension notices changed files
+within a minute and reloads itself, open Gmail tabs included; the reload arrow at `chrome://extensions` is faster.
 
 ## Guidelines
+
+- **`main` is live.** Installs with automatic updates pull it within minutes, so only green, reviewed pull requests
+  go to `main`.
 
 - **No runtime dependencies.** The extension reads email; every line of code in it should be reviewable here.
 - **No `innerHTML`.** Gmail enforces Trusted Types; build DOM nodes with `createElement`.

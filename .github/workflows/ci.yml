@@ -24,7 +24,7 @@ jobs:
       - name: Unit tests
         run: npm test
       - name: Shell scripts
-        run: shellcheck install.sh uninstall.sh
+        run: shellcheck install.sh uninstall.sh update.sh auto-update.sh
 
   helper:
     name: macOS helper

@@ -116,15 +116,32 @@ Click **With attachments**, switch to the Finder and press ⌘V: the attachments
 
 ## Updating
 
+### Automatically (recommended)
+
 ```bash
-cd ~/gmail-paper-clipper && git pull && ./install.sh
+cd ~/gmail-paper-clipper && ./auto-update.sh on
 ```
 
-Then click the reload arrow of Paper Clipper at `chrome://extensions` and reload Gmail.
+A small background job (launchd) checks `main` on GitHub every five minutes and pulls new commits. Within a minute
+Paper Clipper notices its new files, reloads itself and switches open Gmail tabs to the new version, no reload
+needed. When the helper changed, it is rebuilt too.
+
+- `./auto-update.sh status` shows whether it is on and the last log lines, `./auto-update.sh off` turns it off.
+- The job never touches a checkout with local changes or on another branch.
+- Keep the folder outside Documents, Desktop and Downloads; macOS blocks background jobs there.
+- Automatic updates run whatever reaches `main` of this repository, the same trust you give any self-updating app.
+
+### By hand
+
+```bash
+cd ~/gmail-paper-clipper && ./update.sh
+```
+
+Paper Clipper picks up the new files within a minute by itself.
 
 ## Uninstalling
 
-Run `./uninstall.sh` and remove the extension at `chrome://extensions`.
+Run `./uninstall.sh` (it also turns automatic updates off) and remove the extension at `chrome://extensions`.
 
 ## Troubleshooting
 
@@ -183,6 +200,8 @@ src/format.js         text output, quote stripping, file list
 src/background.js     relay to the macOS helper
 host/                 macOS helper (Swift, native messaging)
 install.sh            build and register the helper
+update.sh             pull the latest main, rebuild the helper when needed
+auto-update.sh        run update.sh every five minutes (launchd)
 ```
 
 Contributions are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: [SECURITY.md](SECURITY.md).

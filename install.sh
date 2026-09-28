@@ -74,3 +74,4 @@ fi
 echo
 echo "Done. Extension id: $EXT_ID"
 echo "Next: chrome://extensions → Developer mode → Load unpacked → choose this folder."
+echo "Optional: ./auto-update.sh on keeps this folder on the latest main automatically."

@@ -9,7 +9,12 @@
   "permissions": [
     "nativeMessaging",
     "clipboardWrite",
-    "storage"
+    "storage",
+    "alarms",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://mail.google.com/*"
   ],
   "background": {
     "service_worker": "src/background.js"

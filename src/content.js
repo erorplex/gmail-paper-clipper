@@ -10,6 +10,14 @@
   const PC = globalThis.PaperClipper;
   const locale = navigator.language || 'de-DE';
 
+  // After an update the previous copy of this script lives on, orphaned, in open Gmail tabs, and a
+  // fresh copy is injected. The newest copy owns the page: it removes the old buttons, and an older
+  // copy stops at its next scan (the token lives in the DOM, which both copies share).
+  const instance = `${Date.now()}-${Math.random()}`;
+  document.documentElement.dataset.paperClipper = instance;
+  document.querySelectorAll('.paper-clipper-thread, .paper-clipper-message, .paper-clipper-toast').forEach((el) => el.remove());
+  const isCurrent = () => document.documentElement.dataset.paperClipper === instance && !!(chrome.runtime && chrome.runtime.id);
+
   const T = locale.toLowerCase().startsWith('de')
     ? {
         copy: 'Kopieren',
@@ -442,12 +450,14 @@
   });
 
   let scheduled = null;
-  new MutationObserver(() => {
+  const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = setTimeout(() => {
       scheduled = null;
-      scan();
+      if (isCurrent()) scan();
+      else observer.disconnect();
     }, 300);
-  }).observe(document.body, { childList: true, subtree: true });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
   scan();
 })();
