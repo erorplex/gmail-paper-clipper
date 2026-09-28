@@ -86,6 +86,26 @@ async function rememberLoadedFiles() {
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// A reload into a broken version (missing file, invalid manifest) would stop this watcher too, and a
+// later fix would never arrive. So the new manifest must parse and every file it names must exist.
+async function newVersionLoads() {
+  try {
+    const url = (file) => chrome.runtime.getURL(file);
+    const manifest = await (await fetch(url('manifest.json'), { cache: 'no-store' })).json();
+    const files = [
+      manifest.background && manifest.background.service_worker,
+      ...(manifest.content_scripts || []).flatMap((c) => [...(c.js || []), ...(c.css || [])]),
+      manifest.action && manifest.action.default_popup,
+      ...Object.values(manifest.icons || {}),
+      manifest.default_locale && `_locales/${manifest.default_locale}/messages.json`,
+    ].filter(Boolean);
+    const found = await Promise.all(files.map((f) => fetch(url(f), { cache: 'no-store' }).then((r) => r.ok, () => false)));
+    return found.every(Boolean);
+  } catch {
+    return false;
+  }
+}
+
 async function reloadIfFilesChanged() {
   const { [LOADED]: loaded } = await chrome.storage.session.get(LOADED);
   if (!loaded) return rememberLoadedFiles();
@@ -93,7 +113,9 @@ async function reloadIfFilesChanged() {
   if (current === loaded) return;
   // git may still be writing files; reload only once the new state is stable.
   await wait(5000);
-  if ((await fingerprint()) === current) chrome.runtime.reload();
+  if ((await fingerprint()) !== current) return;
+  if (await newVersionLoads()) chrome.runtime.reload();
+  else console.warn('[Paper Clipper] new files on disk are incomplete; keeping the loaded version');
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
@@ -104,3 +126,5 @@ chrome.runtime.onStartup.addListener(rememberLoadedFiles);
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === CHECK_ALARM) reloadIfFilesChanged();
 });
+// E.g. after the extension was disabled and enabled again, when neither event above fires.
+chrome.alarms.get(CHECK_ALARM).then((alarm) => alarm || rememberLoadedFiles());

@@ -138,6 +138,10 @@ cd ~/gmail-paper-clipper && ./update.sh
 
 Paper Clipper übernimmt die neuen Dateien innerhalb einer Minute von selbst.
 
+**Installiert, bevor es automatische Updates gab?** Einmal `git pull && ./install.sh` ausführen und unter
+`chrome://extensions` bei Paper Clipper auf den Neu-laden-Pfeil klicken. Danach gilt alles oben Beschriebene. Nach
+dem Verschieben des Ordners `./auto-update.sh on` am neuen Ort erneut ausführen.
+
 ## Deinstallieren
 
 `./uninstall.sh` ausführen (schaltet auch die automatischen Updates ab) und die Erweiterung unter

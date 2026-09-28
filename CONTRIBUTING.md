@@ -13,7 +13,9 @@ the buttons break, say which view you use (default, split pane, popout) and past
 ```bash
 git clone https://github.com/erorplex/gmail-paper-clipper.git
 cd gmail-paper-clipper
-npm test              # no install step, no dependencies
+npm test              # unit tests, no install step
+npm install && npx playwright install chromium
+npm run test:e2e      # the real extension in Chromium against the mocked Gmail in test/fixtures/gmail
 ./install.sh          # macOS: build and register the helper
 ```
 
@@ -26,6 +28,9 @@ within a minute and reloads itself, open Gmail tabs included; the reload arrow a
   go to `main`.
 
 - **No runtime dependencies.** The extension reads email; every line of code in it should be reviewable here.
+  Playwright is a dev dependency for the end-to-end test only.
+- **Gmail changes get a fixture.** When Gmail's markup changes, update `test/fixtures/gmail/thread.html` along with
+  `src/gmail.js`, so the end-to-end test keeps matching reality.
 - **No `innerHTML`.** Gmail enforces Trusted Types; build DOM nodes with `createElement`.
 - **Gmail specifics stay in `src/gmail.js`.** Selectors and URLs change; keeping them in one place keeps fixes small.
 - **Tests first for logic.** Parser and formatting changes come with a test in `test/`. Use made-up addresses

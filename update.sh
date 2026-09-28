@@ -1,11 +1,19 @@
 #!/bin/bash
-# Brings this checkout to the latest main and rebuilds the helper when it changed.
+# Brings this checkout to the latest main and rebuilds the helper when its sources changed.
 # Run by hand or every five minutes by the auto-update agent (./auto-update.sh on).
 # Chrome notices the new files within a minute and reloads the extension by itself.
 # Never touches a checkout that is on another branch, has local changes or has diverged.
 set -euo pipefail
 
 cd "$(dirname "$0")"
+ROOT="$(pwd)"
+
+# One run at a time (the agent and a manual run could overlap).
+if [[ -z "${PAPER_CLIPPER_LOCKED:-}" ]]; then
+  lock="$(git rev-parse --git-dir)/paper-clipper-update.lock"
+  exec env PAPER_CLIPPER_LOCKED=1 lockf -s -t 0 "$lock" "$ROOT/update.sh" "$@"
+fi
+
 log() { echo "$(date '+%Y-%m-%d %H:%M:%S') $*"; }
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
@@ -23,15 +31,21 @@ if ! git fetch --quiet origin main; then
 fi
 
 before="$(git rev-parse HEAD)"
-if ! git merge --ff-only --quiet origin/main; then
-  log "skipped: local main has diverged from origin/main"
-  exit 0
+remote="$(git rev-parse FETCH_HEAD)"
+if [[ "$before" != "$remote" ]]; then
+  if ! git merge-base --is-ancestor HEAD FETCH_HEAD; then
+    log "skipped: local main has commits that are not on GitHub"
+    exit 0
+  fi
+  if ! output="$(git merge --ff-only --quiet FETCH_HEAD 2>&1)"; then
+    log "skipped: update failed: $output"
+    exit 0
+  fi
+  log "updated ${before:0:7} → ${remote:0:7}"
 fi
-after="$(git rev-parse HEAD)"
-[[ "$before" == "$after" ]] && exit 0
 
-log "updated ${before:0:7} → ${after:0:7}"
-if ! git diff --quiet "$before" "$after" -- host install.sh manifest.json; then
-  log "helper changed, rebuilding"
+# Compared on every run, so a failed build is retried and a manual `git pull` is caught too.
+if [[ "$(./install.sh --stamp)" != "$(cat host/build/.stamp 2>/dev/null)" ]]; then
+  log "helper sources changed, rebuilding"
   ./install.sh
 fi

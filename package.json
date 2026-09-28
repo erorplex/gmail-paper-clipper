@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "test": "node --test test/*.test.js",
+    "test:e2e": "node --test test/extension.e2e.js",
     "test:helper": "node --test test/helper.smoke.js",
     "build:helper": "mkdir -p host/build && xcrun swiftc -O host/PaperClipperHelper.swift -o host/build/paper-clipper-helper",
     "icons": "node scripts/make-icons.js"
@@ -20,5 +21,8 @@
   "homepage": "https://github.com/erorplex/gmail-paper-clipper#readme",
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   }
 }

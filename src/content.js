@@ -11,11 +11,17 @@
   const locale = navigator.language || 'de-DE';
 
   // After an update the previous copy of this script lives on, orphaned, in open Gmail tabs, and a
-  // fresh copy is injected. The newest copy owns the page: it removes the old buttons, and an older
-  // copy stops at its next scan (the token lives in the DOM, which both copies share).
+  // fresh copy is injected. The newest copy owns the page: it removes the old buttons (keeping note
+  // text that was not saved yet), and an older copy stops at its next scan (the token lives in the
+  // DOM, which both copies share). Old toasts stay, so a running copy can still report back.
   const instance = `${Date.now()}-${Math.random()}`;
   document.documentElement.dataset.paperClipper = instance;
-  document.querySelectorAll('.paper-clipper-thread, .paper-clipper-message, .paper-clipper-toast').forEach((el) => el.remove());
+  const unsavedNotes = new Map();
+  for (const wrap of document.querySelectorAll('.paper-clipper-thread[data-pc-thread]')) {
+    const field = wrap.querySelector('.paper-clipper-note-field[data-pc-dirty]');
+    if (field) unsavedNotes.set(wrap.dataset.pcThread, field.value);
+  }
+  document.querySelectorAll('.paper-clipper-thread, .paper-clipper-message').forEach((el) => el.remove());
   const isCurrent = () => document.documentElement.dataset.paperClipper === instance && !!(chrome.runtime && chrome.runtime.id);
 
   const T = locale.toLowerCase().startsWith('de')
@@ -159,7 +165,7 @@
   let toastEl = null;
   let toastTimer = null;
   function toast(text, { error = false, sticky = false } = {}) {
-    if (!toastEl) {
+    if (!toastEl || !toastEl.isConnected) {
       toastEl = document.createElement('div');
       toastEl.className = 'paper-clipper-toast';
       toastEl.setAttribute('role', 'status');
@@ -407,7 +413,17 @@
       noteButton.setAttribute('aria-expanded', 'false');
       buttons.push(noteButton);
       wrap.append(bar(buttons), panel);
-      guard(PC.getNote(threadId)).then((note) => note && showNote(threadId, note, { open: true }));
+      if (unsavedNotes.has(threadId)) {
+        // Taken over from the previous copy: show it and save it with this one.
+        const field = panel.querySelector('.paper-clipper-note-field');
+        field.value = unsavedNotes.get(threadId);
+        unsavedNotes.delete(threadId);
+        panel.hidden = false;
+        noteButton.setAttribute('aria-expanded', 'true');
+        field.dispatchEvent(new Event('input'));
+      } else {
+        guard(PC.getNote(threadId)).then((note) => note && showNote(threadId, note, { open: true }));
+      }
     } else {
       wrap.append(bar(buttons));
     }

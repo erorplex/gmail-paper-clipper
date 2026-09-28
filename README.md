@@ -139,6 +139,10 @@ cd ~/gmail-paper-clipper && ./update.sh
 
 Paper Clipper picks up the new files within a minute by itself.
 
+**Coming from an install older than automatic updates?** Run `git pull && ./install.sh` once, then click the reload
+arrow of Paper Clipper at `chrome://extensions`. From then on the steps above apply. After moving the folder, run
+`./auto-update.sh on` again in the new place.
+
 ## Uninstalling
 
 Run `./uninstall.sh` (it also turns automatic updates off) and remove the extension at `chrome://extensions`.
@@ -181,12 +185,14 @@ Everything stays on your computer. No server, no analytics, no third-party code.
 ## Development
 
 ```bash
-npm test              # parser, formatting, storage and version tests (Node ≥ 20, no dependencies)
+npm test              # parser, formatting, storage and version tests (Node ≥ 20, no install needed)
+npm run test:e2e      # the real extension in Chromium against a mocked Gmail (npm install && npx playwright install chromium)
 npm run build:helper  # compile the macOS helper
 npm run test:helper   # end-to-end helper test (macOS, overwrites the clipboard)
 npm run icons         # render the icons
 ```
 
+The extension has no runtime dependencies; Playwright is only used by the end-to-end test.
 `tools/paste-probe.html` shows what a web page receives when you paste: types, text and files.
 
 ```
@@ -197,7 +203,7 @@ src/store.js          counters and notes in chrome.storage.local
 src/popup.*           toolbar popup with all notes
 src/mime.js           MIME parser
 src/format.js         text output, quote stripping, file list
-src/background.js     relay to the macOS helper
+src/background.js     relay to the helper, self-update of unpacked installs, refresh of open Gmail tabs
 host/                 macOS helper (Swift, native messaging)
 install.sh            build and register the helper
 update.sh             pull the latest main, rebuild the helper when needed

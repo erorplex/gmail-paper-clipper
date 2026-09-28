@@ -24,6 +24,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
   rebuilds the helper when it changed; `./update.sh` does the same once.
 - Unpacked installs reload themselves when their files change, and open Gmail tabs switch to the new version
   without a reload (also after a normal install or update).
+- End-to-end test of the real extension in Chromium against a mocked Gmail, run in CI.
 - German and English interface.
 
 ### Security

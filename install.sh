@@ -2,12 +2,21 @@
 # Installs the Paper Clipper helper for macOS: compiles it and registers it as native messaging host
 # with Chrome and every other Chromium browser found (Chrome Beta/Canary, Chromium, Brave, Edge, Arc).
 # Usage: ./install.sh [extension-id]   (defaults to the id pinned by "key" in manifest.json)
+#        ./install.sh --stamp          (prints the fingerprint of the helper sources, used by update.sh)
 set -euo pipefail
 
 cd "$(dirname "$0")"
 ROOT="$(pwd)"
 HOST_NAME="io.github.erorplex.paper_clipper"
 BIN="$ROOT/host/build/paper-clipper-helper"
+
+stamp() {
+  cat "$ROOT/host/PaperClipperHelper.swift" "$ROOT/install.sh" "$ROOT/manifest.json" | shasum -a 256 | cut -c1-64
+}
+if [[ "${1:-}" == "--stamp" ]]; then
+  stamp
+  exit 0
+fi
 
 if [[ "$(uname)" != "Darwin" ]]; then
   echo "The helper only runs on macOS. The text-only buttons work without it." >&2
@@ -66,6 +75,7 @@ fi
 # Self-test: {"type":"ping"} with its 4-byte length prefix.
 if printf '\x0f\x00\x00\x00{"type":"ping"}' | "$BIN" | tail -c +5 | grep -q '"ok":true'; then
   echo "✓ helper responds"
+  stamp > "$ROOT/host/build/.stamp"
 else
   echo "✗ helper does not respond" >&2
   exit 1

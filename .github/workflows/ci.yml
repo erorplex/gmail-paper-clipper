@@ -26,6 +26,21 @@ jobs:
       - name: Shell scripts
         run: shellcheck install.sh uninstall.sh update.sh auto-update.sh
 
+  extension:
+    name: Extension (Chrome)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Real extension against mocked Gmail
+        run: npm run test:e2e
+
   helper:
     name: macOS helper
     runs-on: macos-latest
