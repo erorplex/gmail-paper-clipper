@@ -1,9 +1,9 @@
 // Content scripts cannot talk to native hosts, so this relays a port from the Gmail tab to the
 // Mac helper and passes replies back unchanged.
-const HOST = 'mailclip.helper';
+const HOST = 'io.github.erorplex.paper_clipper';
 
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== 'mailclip-helper') return;
+  if (port.name !== 'paper-clipper-helper') return;
 
   let native;
   try {

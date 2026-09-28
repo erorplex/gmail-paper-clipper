@@ -1,111 +1,175 @@
-# MailClip für Gmail
+# Paper Clipper for Gmail
 
-Chrome-Erweiterung, die Gmail-Mails mit einem Klick kopiert: Betreff, Absender, Empfänger, Cc, Datum und Text.
-Auf Wunsch kommen alle Anhänge als **echte Dateien** mit, also so, als hättest du sie im Finder kopiert.
+[![CI](https://github.com/erorplex/gmail-paper-clipper/actions/workflows/ci.yml/badge.svg)](https://github.com/erorplex/gmail-paper-clipper/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Platform: Chrome · macOS](https://img.shields.io/badge/platform-Chrome%20%C2%B7%20macOS-lightgrey)
 
-*English summary: Chrome extension that copies a Gmail email or a whole thread to the clipboard. Optionally the
-attachments come along as real files (via a small macOS helper), so ⌘V in Claude, ChatGPT, Slack or Finder pastes
-the PDFs, not just text. Everything runs locally.*
+**Copy a Gmail email or a whole thread in one click: subject, sender, recipients, date and text. The attachments
+can come along as real files.**
 
-## Buttons
+Paste into Claude, ChatGPT, Slack, a ticket or the Finder with ⌘V. The PDFs arrive as PDFs, not as a line of text.
 
-| Wo | Button | Ergebnis |
+🇩🇪 [Deutsche Anleitung](README.de.md)
+
+> Paper Clipper is an independent open source project, not affiliated with or endorsed by Google.
+> Gmail is a trademark of Google LLC.
+
+## Features
+
+Two button bars appear in Gmail:
+
+| Where | Button | What lands on the clipboard |
 | --- | --- | --- |
-| an jeder geöffneten Mail | **Kopieren** | Kopfzeilen und Text dieser Mail als Text |
-| an jeder geöffneten Mail | **Mit Anhängen** | Text und alle Anhänge als Dateien |
-| unter dem Betreff | **Verlauf kopieren** | alle Mails des Verlaufs, nummeriert, ohne doppelte Zitate |
-| unter dem Betreff | **Verlauf + Anhänge** | Verlauf und alle Anhänge (jeder Anhang nur einmal) |
+| every opened email | **Copy** | headers and text of this email |
+| every opened email | **With attachments** | text plus every attachment as a file |
+| below the subject | **Copy thread** | every email of the conversation, numbered, quoted history removed |
+| below the subject | **Thread + attachments** | the thread plus all attachments, each one once |
 
-Beispiel für **Kopieren**:
+Example of **Copy**:
 
 ```
-Betreff: Angebot Q4
-Von: Max Muster <max@example.org>
-An: Erika Beispiel <erika@example.com>
+Subject: Offer Q4
+From: Max Muster <max@example.org>
+To: Erika Beispiel <erika@example.com>
 Cc: Team <team@example.org>
-Datum: Di., 22.09.2026, 08:30
-Anhänge: Angebot.pdf (240 KB), Skizze.png (39 KB)
+Date: Tue, 22/09/2026, 08:30
+Attachments: Offer.pdf (240 KB), Sketch.png (39 KB)
 
-Hallo Erika, …
+Hi Erika, …
 ```
 
-Bei den Anhang-Buttons liegen danach in der Zwischenablage:
+The labels follow your browser language. German and English are built in.
 
-- der Text, für normale Textfelder,
-- `<Betreff>.txt` mit demselben Text als Datei,
-- jeder Anhang als Datei.
+## Installation guide
 
-Warum auch die `.txt`-Datei? Web-Apps wie Claude oder ChatGPT übernehmen beim Einfügen die Dateien und lassen
-den Text weg. Mit der `.txt` kommt der Mailtext trotzdem an.
+### Requirements
 
-## Installation (macOS)
+- Google Chrome. Other Chromium browsers (Brave, Edge, Arc) work too.
+- For the attachment buttons: macOS with Apple's command line tools. `install.sh` tells you when they are missing.
+  The text buttons work on any system that runs Chrome.
 
-1. **Helfer installieren.** Nötig nur für die Anhang-Buttons. Einmal im Terminal ausführen:
+### Step 1: Get the code
 
-   ```bash
-   ./install.sh
-   ```
-
-   Das Skript kompiliert den Helfer (`host/MailClipHelper.swift`) und meldet ihn bei Chrome an, außerdem bei
-   Chrome Beta/Canary, Chromium, Brave, Edge und Arc, falls vorhanden. Voraussetzung ist Swift (`xcode-select --install`).
-
-2. **Erweiterung laden.**
-   1. `chrome://extensions` öffnen.
-   2. Rechts oben den **Entwicklermodus** einschalten.
-   3. **Entpackte Erweiterung laden** klicken und diesen Ordner wählen.
-
-3. Gmail neu laden und eine Mail öffnen.
-
-Entfernen: `./uninstall.sh` und die Erweiterung unter `chrome://extensions` löschen.
-
-## So funktioniert es
-
-- Die Erweiterung liest jede Mail über Gmails eigene Funktion „Original herunterladen“ als Rohmail (RFC 822).
-  Darin stecken alle Kopfzeilen und Anhänge. Geladen wird mit deiner bestehenden Gmail-Sitzung, ohne Google-API
-  und ohne Anmeldung.
-- `src/mime.js` zerlegt die Rohmail: Zeichensätze, Quoted-Printable/Base64, RFC-2047/2231-Namen, `format=flowed`.
-- `src/format.js` baut daraus den Text. Im Verlauf wird zitierter Antwortverlauf („Am … schrieb …“, „On … wrote“,
-  Outlook-Kopfblöcke) abgeschnitten, weitergeleitete Mails bleiben erhalten.
-- Kleine eingebettete Bilder unter 30 KB, meist Signatur-Logos, werden übersprungen. Eingefügte Screenshots
-  kommen mit.
-- Die Anhang-Buttons schicken Text und Dateien an den Mac-Helfer (Chrome Native Messaging). Der Helfer legt sie
-  unter `~/Library/Caches/MailClip` ab und schreibt Text und Dateien in die macOS-Zwischenablage. Kopien, die
-  älter als eine Stunde sind, löscht er beim nächsten Kopieren.
-
-**Datenschutz:** Nichts verlässt deinen Rechner. Es gibt keinen Server, kein Tracking und keine Fremdbibliotheken.
-
-## Grenzen
-
-- Die Anhang-Buttons gibt es nur auf macOS. Die Text-Buttons laufen überall, wo Chrome läuft.
-- Google-Drive-Links in Mails sind keine Anhänge und werden nicht mitkopiert.
-- Gmail ändert gelegentlich sein HTML. Alles, was davon abhängt (Selektoren, URL), steht gebündelt in
-  `src/gmail.js`.
-- Der Helfer ist für eine bestimmte Erweiterungs-ID freigegeben. `manifest.json` legt sie über `key` fest.
-  Wer eine eigene ID nutzt, ruft `./install.sh <id>` auf.
-
-## Entwicklung
+Put the folder somewhere permanent. Chrome loads the extension from it every time it starts.
 
 ```bash
-npm test          # Parser- und Format-Tests (Node ≥ 20, keine Abhängigkeiten)
-npm run icons     # Icons neu rendern
+git clone https://github.com/erorplex/gmail-paper-clipper.git ~/gmail-paper-clipper
 ```
 
-`tools/paste-probe.html` zeigt, was eine Webseite beim Einfügen aus der Zwischenablage bekommt: Typen, Text und
-Dateien.
+Without git: on GitHub, click **Code → Download ZIP**, unzip it and move the folder to a permanent place, for example
+your home folder.
 
-Aufbau:
+### Step 2: Install the helper (macOS, for the attachment buttons)
 
-```
-manifest.json         MV3-Manifest
-src/content.js        Buttons, Hinweise, Ablauf beim Kopieren
-src/gmail.js          alles Gmail-Spezifische (DOM, Rohmail-URL)
-src/mime.js           MIME-Parser
-src/format.js         Textausgabe, Zitate kürzen, Dateiliste
-src/background.js     Weiterleitung zum Mac-Helfer
-host/                 Mac-Helfer (Swift)
-install.sh            Helfer bauen und anmelden
+Open the Terminal, change into the folder and run the installer:
+
+```bash
+cd ~/gmail-paper-clipper && ./install.sh
 ```
 
-## Lizenz
+The script compiles the small helper from `host/PaperClipperHelper.swift` and registers it with every Chromium
+browser it finds. It ends with `✓ helper responds`. If Swift is missing, run `xcode-select --install` first.
 
-MIT, siehe [LICENSE](LICENSE).
+### Step 3: Load the extension in Chrome
+
+1. Open `chrome://extensions`.
+2. Turn on **Developer mode** (top right).
+3. Click **Load unpacked** and choose the `gmail-paper-clipper` folder.
+4. Optional: pin Paper Clipper via the puzzle icon in the toolbar.
+
+### Step 4: Try it
+
+Reload Gmail and open an email. The buttons sit below the subject and above the text of every opened email.
+Click **With attachments**, switch to the Finder and press ⌘V: the attachments appear as files.
+
+## Using it
+
+- **Copy** and **Copy thread** put plain text on the clipboard. They work in any text field.
+- **With attachments** and **Thread + attachments** put three things on the clipboard:
+  - the text, for plain text fields,
+  - `<subject>.txt` with the same text,
+  - every attachment as a file.
+
+  Web apps like Claude or ChatGPT take only the files when files are on the clipboard. The `.txt` file makes sure
+  the email text still arrives.
+- The thread buttons open Gmail's "older messages" bubble first, so no email is left out. The confirmation shows how
+  many messages were copied.
+- In a thread, quoted history ("On … wrote:", "Am … schrieb …:", Outlook header blocks) is cut from every reply, so
+  nothing appears twice. Forwarded emails are kept. **Copy** on a single email keeps its full text.
+- Small images embedded in the text, under 30 KB and usually signature logos, are skipped. Pasted screenshots are
+  kept.
+
+## Updating
+
+```bash
+cd ~/gmail-paper-clipper && git pull && ./install.sh
+```
+
+Then click the reload arrow of Paper Clipper at `chrome://extensions` and reload Gmail.
+
+## Uninstalling
+
+Run `./uninstall.sh` and remove the extension at `chrome://extensions`.
+
+## Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| No buttons in Gmail | Reload Gmail. Check at `chrome://extensions` that Paper Clipper is enabled and shows no errors. |
+| "Mac helper missing" | Run `./install.sh` in the extension folder, then reload Gmail. |
+| "The Mac helper does not know this extension" | You loaded a copy with a different extension id. Run `./install.sh` again, or `./install.sh <id>` with the id shown at `chrome://extensions`. |
+| A thread copy has fewer messages than expected | Open the thread fully once and copy again. If it persists, please [open an issue](https://github.com/erorplex/gmail-paper-clipper/issues/new/choose). |
+| Buttons stopped working after a Gmail update | Gmail changed its markup. Please [report it](https://github.com/erorplex/gmail-paper-clipper/issues/new/choose); the fix usually lives in `src/gmail.js`. |
+
+## How it works
+
+- Every email is loaded through Gmail's own **Download original** link as raw message (RFC 822), using your current
+  Gmail session. There is no Google API, no OAuth and no extra login.
+- `src/mime.js` parses the raw message: charsets, quoted-printable and base64, RFC 2047 and RFC 2231 names,
+  `format=flowed`.
+- `src/format.js` builds the text and the file list.
+- The attachment buttons hand text and files to the helper via Chrome native messaging. The helper stores them in
+  `~/Library/Caches/PaperClipper` and puts text and file references on the macOS clipboard. Copies older than one
+  hour are deleted on the next copy.
+- Attachments carry the macOS quarantine flag like browser downloads, so Gatekeeper still checks a file before it
+  is opened. File names are cleaned of path separators and invisible direction characters.
+
+## Privacy
+
+Everything stays on your computer. No server, no analytics, no third-party code. Details in [PRIVACY.md](PRIVACY.md).
+
+## Limitations
+
+- The attachment buttons need macOS. Help for Windows or Linux helpers is welcome.
+- Google Drive links in emails are links, not attachments, and are not copied as files.
+- Gmail changes its markup from time to time. Everything Gmail-specific is kept in `src/gmail.js`.
+- The helper only answers the extension id pinned by `key` in `manifest.json`. Forks with their own key run
+  `./install.sh <id>`.
+
+## Development
+
+```bash
+npm test              # parser, formatting and version tests (Node ≥ 20, no dependencies)
+npm run build:helper  # compile the macOS helper
+npm run test:helper   # end-to-end helper test (macOS, overwrites the clipboard)
+npm run icons         # render the icons
+```
+
+`tools/paste-probe.html` shows what a web page receives when you paste: types, text and files.
+
+```
+manifest.json         Manifest V3
+src/content.js        buttons, notifications, copy flow
+src/gmail.js          everything Gmail-specific (DOM selectors, raw message URL)
+src/mime.js           MIME parser
+src/format.js         text output, quote stripping, file list
+src/background.js     relay to the macOS helper
+host/                 macOS helper (Swift, native messaging)
+install.sh            build and register the helper
+```
+
+Contributions are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: [SECURITY.md](SECURITY.md).
+
+## License
+
+[MIT](LICENSE)

@@ -123,6 +123,7 @@ test('formatThread numbers messages, strips quoted history and repeats only chan
 test('safeFilename, formatSize and collectFiles', () => {
   assert.equal(safeFilename('Re: Angebot / Q4?'), 'Re_ Angebot _ Q4_');
   assert.equal(safeFilename('  ...  '), 'Mail');
+  assert.equal(safeFilename('invoice\u202Efdp.exe'), 'invoicefdp.exe');
   assert.equal(safeFilename('a'.repeat(200) + '.pdf').length, 100);
   assert.ok(safeFilename('a'.repeat(200) + '.pdf').endsWith('.pdf'));
   assert.equal(formatSize(512, 'de-DE'), '512 B');

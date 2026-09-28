@@ -141,4 +141,4 @@
     threadMessageRefs,
     fetchRawAll,
   });
-})((globalThis.MailClip = globalThis.MailClip || {}));
+})((globalThis.PaperClipper = globalThis.PaperClipper || {}));

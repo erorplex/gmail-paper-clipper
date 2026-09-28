@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "__MSG_name__",
-  "short_name": "MailClip",
-  "version": "1.0.0",
+  "short_name": "Paper Clipper",
+  "version": "0.1.0",
   "description": "__MSG_description__",
   "default_locale": "en",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnQMcZNi0VbggiDDt++3oD25hupu42yw+3mLcKLY3oGeZxUiyrcVb9t6b4EKGDHgHTaIuGImPp8CWgPZ6AO10V2lOHcLHcEgr1v8u70QRRluXkUbSK5iXfjW9hrXEoLKYGSaFeP/EF3bO9ZjalLNaqCyLZ18isB9DOyI7kZXe+wDFgklSJ/WgU5ezb4h6ifZRqHEoq+rJN50ZKrfjO0Rb1lpDvXyhLyHjIvmZTy7bdjYp1dXijw9JYkJ+7QqHyMclVann57e487NbPnS6jpIR7t7HztoG6KrpomfCo1w1Q++ebzzI6q4s48sgYpRrlIOGlk9RGe2SpzkvegZfRTvCFQIDAQAB",

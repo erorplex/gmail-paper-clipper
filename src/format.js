@@ -1,6 +1,6 @@
 /*
  * Turns parsed messages into clipboard text and the file list for the Mac helper.
- * Runs as a content script (exports to globalThis.MailClip) and under Node for tests.
+ * Runs as a content script (exports to globalThis.PaperClipper) and under Node for tests.
  */
 (function (exports) {
   'use strict';
@@ -205,6 +205,8 @@
 
   function safeFilename(name, max = 100) {
     let s = String(name || '')
+      // Bidi controls could disguise "invoice\u202Efdp.exe" as "invoiceexe.pdf".
+      .replace(/[\u200e\u200f\u202a-\u202e\u2066-\u2069\u061c\x7f-\x9f]/g, '')
       .replace(/[\/\\:*?"<>|\x00-\x1f]/g, '_')
       .replace(/\s+/g, ' ')
       .replace(/^[\s.]+|[\s.]+$/g, '');
@@ -256,4 +258,4 @@
     collectFiles,
     textFileName,
   });
-})(typeof module !== 'undefined' ? module.exports : (globalThis.MailClip = globalThis.MailClip || {}));
+})(typeof module !== 'undefined' ? module.exports : (globalThis.PaperClipper = globalThis.PaperClipper || {}));

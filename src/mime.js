@@ -1,7 +1,7 @@
 /*
  * MIME parser for raw RFC 822 messages, as Gmail serves them via "Download original".
  * Works on binary strings (one char per byte) so non-UTF-8 parts and attachments stay intact.
- * Runs as a content script (exports to globalThis.MailClip) and under Node for tests.
+ * Runs as a content script (exports to globalThis.PaperClipper) and under Node for tests.
  */
 (function (exports) {
   'use strict';
@@ -429,4 +429,4 @@
   }
 
   Object.assign(exports, { parseMessage, decodeWords, parseAddressList, toBinaryString, toBytes });
-})(typeof module !== 'undefined' ? module.exports : (globalThis.MailClip = globalThis.MailClip || {}));
+})(typeof module !== 'undefined' ? module.exports : (globalThis.PaperClipper = globalThis.PaperClipper || {}));
