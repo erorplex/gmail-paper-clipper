@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Paste probe</title>
+<textarea id="t" style="width:90%;height:120px" autofocus></textarea>
+<pre id="out">waiting for paste</pre>
+<script>
+document.addEventListener('paste', (e) => {
+  const d = e.clipboardData;
+  const files = [...d.files].map((f) => `${f.name} (${f.type || '?'}, ${f.size} B)`);
+  document.getElementById('out').textContent = JSON.stringify({
+    types: [...d.types],
+    text: d.getData('text/plain').slice(0, 80),
+    files,
+  }, null, 2);
+});
+</script>

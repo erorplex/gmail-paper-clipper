@@ -1,0 +1,11 @@
+{
+  "name": "mailclip",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome extension: copy Gmail emails and threads, optionally with attachments as real files (macOS helper)",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "icons": "node scripts/make-icons.js"
+  }
+}
