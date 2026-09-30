@@ -106,6 +106,10 @@ Gmail neu laden und eine Mail öffnen. Die Buttons stehen unter dem Betreff und 
 - Unter dem Betreff auf **Notiz** klicken und schreiben. Die Notiz speichert sich beim Tippen von selbst.
 - Öffnest du den Verlauf wieder, klappt die Notiz von selbst auf und der Button **Notiz** ist hervorgehoben.
 - Text leeren löscht die Notiz.
+- Formatierung wie in Notion oder Markdown: `# Überschrift` (bis `###`), `- Punkt`, `1. Liste`, `- [ ] Aufgabe`,
+  `**fett**`, `*kursiv*`, `` `Code` `` und `[Text](https://…)`. Links werden auch ohne Klammern klickbar.
+- Beim Lesen erscheint die Notiz formatiert, Links öffnen sich in einem neuen Tab und Aufgaben lassen sich abhaken.
+  Ein Klick in die Notiz bearbeitet sie, `Esc` oder ein Klick daneben zeigt sie wieder formatiert.
 - Ein Klick auf das Paper-Clipper-Symbol in der Chrome-Symbolleiste zeigt alle Notizen: neueste zuerst, mit Suche,
   Link zurück zur Mail, Löschen und **Export** als JSON.
 - Notizen und Zähler liegen nur in diesem Browser (`chrome.storage.local`). Sie werden nicht synchronisiert und beim

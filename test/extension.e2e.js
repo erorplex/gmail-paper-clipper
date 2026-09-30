@@ -159,5 +159,19 @@ test('real extension in Chromium', { skip: chromium ? false : 'playwright not in
     assert.equal(await count('.paper-clipper-message'), '2');
   });
 
+  await t.test('a note is shown formatted with clickable links and tasks that save', async () => {
+    await page.click('.paper-clipper-note-view');
+    await page.fill('.paper-clipper-note-field', '# To do\n- [ ] Rückruf\nCase: https://example.org/case?id=1.\n<b>kein HTML</b>');
+    await page.press('.paper-clipper-note-field', 'Escape');
+    await page.waitForSelector('.paper-clipper-note-view:not([hidden])');
+    assert.equal(await page.$eval('.paper-clipper-note-h1', (el) => el.textContent), 'To do');
+    assert.equal(await page.$eval('.paper-clipper-note-view a', (a) => a.href), 'https://example.org/case?id=1');
+    assert.equal(await page.$$eval('.paper-clipper-note-view b', (els) => els.length), 0, 'markup stays text');
+    await page.check('.paper-clipper-note-task input');
+    await page.waitForFunction(() => /Gespeichert/.test(document.querySelector('.paper-clipper-note-status').textContent));
+    const stored = await worker.evaluate(() => chrome.storage.local.get('note:18a0000000000001'));
+    assert.match(stored['note:18a0000000000001'].text, /^# To do\n- \[x\] Rückruf\n/);
+  });
+
   assert.deepEqual(pageErrors, []);
 });

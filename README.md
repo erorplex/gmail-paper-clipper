@@ -109,6 +109,10 @@ Click **With attachments**, switch to the Finder and press ⌘V: the attachments
 - Click **Note** below the subject and type. The note saves itself while you type.
 - The next time you open the thread, the note opens by itself and the **Note** button is highlighted.
 - Clearing the text deletes the note.
+- Formatting as in Notion or Markdown: `# Heading` (up to `###`), `- bullet`, `1. list`, `- [ ] task`, `**bold**`,
+  `*italic*`, `` `code` `` and `[text](https://…)`. Bare links become clickable too.
+- When you read it, the note is shown formatted, links open in a new tab and tasks can be ticked off. Click into
+  the note to edit it; `Esc` or a click elsewhere shows it formatted again.
 - Click the Paper Clipper icon in the Chrome toolbar to see all notes: newest first, with search, a link back to
   the email, delete, and **export** as JSON.
 - Notes and counters are stored only in this browser (`chrome.storage.local`). They are not synced and are deleted

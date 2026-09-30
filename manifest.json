@@ -36,6 +36,7 @@
         "src/mime.js",
         "src/format.js",
         "src/store.js",
+        "src/note.js",
         "src/gmail.js",
         "src/content.js"
       ],
