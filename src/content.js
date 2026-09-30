@@ -36,7 +36,8 @@
         threadWithAttachmentsTitle: 'Alle Mails des Verlaufs plus alle Anhänge als Dateien kopieren (Mac-Helfer)',
         note: 'Notiz',
         noteTitle: 'Eigene Notiz zu diesem Verlauf, nur lokal gespeichert',
-        notePlaceholder: 'Notiz zu diesem Verlauf … (wird automatisch gespeichert)',
+        notePlaceholder: 'Notiz zu diesem Verlauf … (wird automatisch gespeichert)\n# Überschrift · - Punkt · - [ ] Aufgabe · **fett** · Links werden klickbar',
+        noteEdit: 'Klicken zum Bearbeiten',
         noteSaving: 'Speichert …',
         noteSaved: (when) => `Gespeichert · ${when}`,
         noteDeleted: 'Notiz gelöscht',
@@ -66,7 +67,8 @@
         threadWithAttachmentsTitle: 'Copy every email in this thread plus all attachments as files (Mac helper)',
         note: 'Note',
         noteTitle: 'Your own note on this thread, stored only locally',
-        notePlaceholder: 'Note on this thread … (saved automatically)',
+        notePlaceholder: 'Note on this thread … (saved automatically)\n# Heading · - bullet · - [ ] task · **bold** · links become clickable',
+        noteEdit: 'Click to edit',
         noteSaving: 'Saving …',
         noteSaved: (when) => `Saved · ${when}`,
         noteDeleted: 'Note deleted',
@@ -308,6 +310,85 @@
   window.addEventListener('pagehide', flushNotes);
   document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flushNotes());
 
+  // Formatted note: links, headings, lists and task checkboxes, built from the parsed tree with
+  // createElement and textContent only.
+  function renderInline(parent, nodes) {
+    for (const node of nodes) {
+      if (node.type === 'text') parent.append(node.text);
+      else if (node.type === 'code') {
+        const code = document.createElement('code');
+        code.textContent = node.text;
+        parent.append(code);
+      } else if (node.type === 'link') {
+        const a = document.createElement('a');
+        a.href = node.href;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        renderInline(a, node.children);
+        parent.append(a);
+      } else {
+        const el = document.createElement(node.type === 'bold' ? 'strong' : 'em');
+        renderInline(el, node.children);
+        parent.append(el);
+      }
+    }
+  }
+
+  function renderNote(view, text, onToggle) {
+    view.replaceChildren();
+    for (const block of PC.parseNote(text)) {
+      if (block.type === 'heading') {
+        const h = document.createElement('div');
+        h.className = `paper-clipper-note-h${block.level}`;
+        renderInline(h, block.children);
+        view.append(h);
+      } else if (block.type === 'paragraph') {
+        const p = document.createElement('p');
+        block.lines.forEach((line, i) => {
+          if (i) p.append(document.createElement('br'));
+          renderInline(p, line);
+        });
+        view.append(p);
+      } else {
+        const list = document.createElement(block.ordered ? 'ol' : 'ul');
+        if (block.start > 1) list.start = block.start;
+        for (const item of block.items) {
+          const li = document.createElement('li');
+          if (item.task) {
+            li.className = 'paper-clipper-note-task';
+            const box = document.createElement('input');
+            box.type = 'checkbox';
+            box.checked = item.task === 'done';
+            box.addEventListener('change', () => onToggle(item.line));
+            li.classList.toggle('is-done', box.checked);
+            li.append(box);
+          }
+          renderInline(li, item.children);
+          list.append(li);
+        }
+        view.append(list);
+      }
+    }
+  }
+
+  // A note with text is shown formatted; a click on it (not on a link or checkbox) edits the text.
+  function setEditing(panel, editing) {
+    const view = panel.querySelector('.paper-clipper-note-view');
+    const field = panel.querySelector('.paper-clipper-note-field');
+    const edit = editing || !field.value.trim();
+    field.hidden = !edit;
+    view.hidden = edit;
+    if (edit) autoGrow(field);
+    else renderNote(view, field.value, view.pcToggle);
+  }
+
+  // An empty note opens straight into the text field.
+  function openNote(panel) {
+    const field = panel.querySelector('.paper-clipper-note-field');
+    setEditing(panel, false);
+    if (!field.hidden) field.focus();
+  }
+
   function notePanel(threadId, subject) {
     // Remembered now, while this thread is on screen; Gmail may show another thread when the save runs.
     let subjectText = subject.textContent.trim();
@@ -315,6 +396,10 @@
     const panel = document.createElement('div');
     panel.className = 'paper-clipper-note';
     panel.hidden = true;
+    const view = document.createElement('div');
+    view.className = 'paper-clipper-note-view';
+    view.title = T.noteEdit;
+    view.hidden = true;
     const field = document.createElement('textarea');
     field.className = 'paper-clipper-note-field';
     field.placeholder = T.notePlaceholder;
@@ -322,10 +407,11 @@
     field.setAttribute('aria-label', T.note);
     const status = document.createElement('div');
     status.className = 'paper-clipper-note-status';
-    panel.append(field, status);
+    panel.append(view, field, status);
 
-    // Gmail shortcuts (e.g. "#" deletes the thread) must not see what is typed here.
-    for (const type of ['keydown', 'keypress', 'keyup']) panel.addEventListener(type, (e) => e.stopPropagation());
+    // Gmail shortcuts (e.g. "#" deletes the thread) must not see what is typed here, nor Gmail's
+    // click handlers the clicks.
+    for (const type of ['keydown', 'keypress', 'keyup', 'click']) panel.addEventListener(type, (e) => e.stopPropagation());
 
     let timer = null;
     const save = async () => {
@@ -345,15 +431,33 @@
         status.textContent = /context invalidated/i.test(String(err && err.message)) ? T.reload : `${T.noteFailed}: ${err.message || err}`;
       }
     };
-    field.addEventListener('input', () => {
-      autoGrow(field);
+    const changed = () => {
       field.dataset.pcDirty = '1';
       status.textContent = T.noteSaving;
       clearTimeout(timer);
       timer = setTimeout(save, 500);
       pendingSaves.add(save);
+    };
+    field.addEventListener('input', () => {
+      autoGrow(field);
+      changed();
     });
-    field.addEventListener('blur', () => timer && save());
+    field.addEventListener('blur', () => {
+      if (timer) save();
+      if (panel.isConnected && !panel.hidden) setEditing(panel, false);
+    });
+    field.addEventListener('keydown', (e) => e.key === 'Escape' && field.blur());
+    view.pcToggle = (line) => {
+      field.value = PC.toggleTask(field.value, line);
+      changed();
+      save();
+      setEditing(panel, false);
+    };
+    view.addEventListener('click', (e) => {
+      if (e.target.closest('a, input') || String(getSelection())) return;
+      setEditing(panel, true);
+      field.focus();
+    });
     return panel;
   }
 
@@ -363,6 +467,7 @@
     for (const wrap of document.querySelectorAll(`.paper-clipper-thread[data-pc-thread="${CSS.escape(threadId)}"]`)) {
       const panel = wrap.querySelector('.paper-clipper-note');
       const field = wrap.querySelector('.paper-clipper-note-field');
+      const editing = document.activeElement === field;
       const noteButton = wrap.querySelector('.paper-clipper-note-btn');
       noteButton.classList.toggle('is-active', !!note);
       if (!field.dataset.pcDirty) {
@@ -374,7 +479,7 @@
         panel.hidden = false;
         noteButton.setAttribute('aria-expanded', 'true');
       }
-      if (!panel.hidden) autoGrow(field);
+      if (!panel.hidden) setEditing(panel, editing);
     }
   }
 
@@ -404,10 +509,7 @@
       const noteButton = button(T.note, T.noteTitle, ICONS.note, () => {
         panel.hidden = !panel.hidden;
         noteButton.setAttribute('aria-expanded', String(!panel.hidden));
-        if (!panel.hidden) {
-          autoGrow(panel.firstChild);
-          panel.firstChild.focus();
-        }
+        if (!panel.hidden) openNote(panel);
       });
       noteButton.classList.add('paper-clipper-note-btn');
       noteButton.setAttribute('aria-expanded', 'false');
@@ -419,6 +521,7 @@
         field.value = unsavedNotes.get(threadId);
         unsavedNotes.delete(threadId);
         panel.hidden = false;
+        setEditing(panel, true);
         noteButton.setAttribute('aria-expanded', 'true');
         field.dispatchEvent(new Event('input'));
       } else {

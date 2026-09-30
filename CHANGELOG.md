@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+### Added
+
+- Notes are shown formatted: headings (`#` to `###`), bullet and numbered lists, task checkboxes you can tick,
+  bold, italic, code, and clickable links (bare URLs and `[text](url)`). A click on the note edits the plain text;
+  `Esc` or clicking elsewhere shows it formatted again. Stored notes stay plain text.
+
+### Changed
+
+- The note field uses the full width of the thread instead of shrinking to the button row, and grows with its text.
+
 ## [0.1.0] - 2026-09-28
 
 ### Added

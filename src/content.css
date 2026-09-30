@@ -6,6 +6,9 @@
 }
 
 .paper-clipper-thread {
+  box-sizing: border-box;
+  width: 100%;
+  align-self: stretch; /* Gmail's subject header is a flex box; without this the note shrinks to the buttons */
   margin: 8px 0 4px;
 }
 
@@ -68,15 +71,16 @@
 }
 
 .paper-clipper-note {
-  max-width: 760px;
   margin: 8px 0 4px;
 }
 
-.paper-clipper-note[hidden] {
+.paper-clipper-note[hidden],
+.paper-clipper-note [hidden] {
   display: none;
 }
 
-.paper-clipper-note-field {
+.paper-clipper-note-field,
+.paper-clipper-note-view {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -88,6 +92,81 @@
   color: inherit;
   font: 14px/1.45 'Google Sans', Roboto, Arial, sans-serif;
   resize: vertical;
+}
+
+.paper-clipper-note-view {
+  min-height: 0;
+  resize: none;
+  cursor: text;
+  overflow-wrap: anywhere;
+}
+
+.paper-clipper-note-view > :first-child {
+  margin-top: 0;
+}
+
+.paper-clipper-note-view > :last-child {
+  margin-bottom: 0;
+}
+
+.paper-clipper-note-view p,
+.paper-clipper-note-view ul,
+.paper-clipper-note-view ol {
+  margin: 0 0 6px;
+}
+
+.paper-clipper-note-view ul,
+.paper-clipper-note-view ol {
+  padding-left: 22px;
+}
+
+.paper-clipper-note-h1,
+.paper-clipper-note-h2,
+.paper-clipper-note-h3 {
+  margin: 10px 0 4px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.paper-clipper-note-h1 {
+  font-size: 20px;
+}
+
+.paper-clipper-note-h2 {
+  font-size: 17px;
+}
+
+.paper-clipper-note-h3 {
+  font-size: 15px;
+}
+
+.paper-clipper-note-view a {
+  color: #0b57d0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.paper-clipper-note-view code {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.18);
+  font: 13px/1.4 'Roboto Mono', Menlo, monospace;
+}
+
+.paper-clipper-note-view li.paper-clipper-note-task {
+  list-style: none;
+  margin-left: -20px;
+}
+
+.paper-clipper-note-task input {
+  margin: 0 6px 0 0;
+  vertical-align: -2px;
+  cursor: pointer;
+}
+
+.paper-clipper-note-task.is-done {
+  opacity: 0.6;
+  text-decoration: line-through;
 }
 
 .paper-clipper-note-field:focus {
