@@ -74,3 +74,15 @@ test('toggleTask flips exactly one checkbox and keeps the rest of the text', () 
   assert.equal(toggleTask(text, 2), '# To do\n- [ ] Rückruf\n- [ ] Angebot [ ] senden');
   assert.equal(toggleTask(text, 0), text, 'lines without a task stay as they are');
 });
+
+test('a numbered list keeps the number it starts with', () => {
+  const [list] = parseNote('30. September Rückruf\n31. Oktober Termin');
+  assert.equal(list.ordered, true);
+  assert.equal(list.start, 30);
+  assert.equal(parseNote('- a')[0].start, undefined);
+});
+
+test('a bare URL that trims down to its scheme stays text', () => {
+  assert.deepEqual(parseInline('siehe https://.'), [{ type: 'text', text: 'siehe https://.' }]);
+  assert.deepEqual(parseInline('mailto:)'), [{ type: 'text', text: 'mailto:)' }]);
+});

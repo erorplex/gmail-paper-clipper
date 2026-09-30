@@ -351,6 +351,7 @@
         view.append(p);
       } else {
         const list = document.createElement(block.ordered ? 'ol' : 'ul');
+        if (block.start > 1) list.start = block.start;
         for (const item of block.items) {
           const li = document.createElement('li');
           if (item.task) {

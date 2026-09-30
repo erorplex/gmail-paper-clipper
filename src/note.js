@@ -10,7 +10,7 @@
   const HEADING = /^(#{1,3})\s+(\S.*)$/;
   const TASK = /^\s*[-*+]\s+\[([ xX])\](?:\s+(.*))?$/;
   const BULLET = /^\s*[-*+]\s+(.*)$/;
-  const NUMBERED = /^\s*\d+[.)]\s+(.*)$/;
+  const NUMBERED = /^\s*(\d+)[.)]\s+(.*)$/;
 
   // Leftmost match wins; at the same position the earlier alternative does.
   const INLINE = new RegExp(
@@ -62,8 +62,12 @@
         if (href) out.push({ type: 'link', href, children: [{ type: 'text', text: m[2] }] });
         else pushText(raw);
       } else if (m[4] !== undefined) {
-        raw = trimUrl(m[4]);
-        out.push({ type: 'link', href: safeHref(raw), children: [{ type: 'text', text: raw }] });
+        const url = trimUrl(m[4]);
+        const href = safeHref(url);
+        if (href) {
+          raw = url;
+          out.push({ type: 'link', href, children: [{ type: 'text', text: url }] });
+        } else pushText(raw);
       } else if (m[5] !== undefined) {
         out.push({ type: 'bold', children: parseInline(m[5]) });
       } else {
@@ -93,9 +97,10 @@
           const ordered = !!numbered;
           if (!list || list.ordered !== ordered) {
             list = { type: 'list', ordered, items: [] };
+            if (ordered) list.start = Number(numbered[1]);
             blocks.push(list);
           }
-          const content = task ? task[2] || '' : (bullet || numbered)[1];
+          const content = task ? task[2] || '' : bullet ? bullet[1] : numbered[2];
           list.items.push({
             task: task ? (task[1] === ' ' ? 'open' : 'done') : null,
             line: index,
